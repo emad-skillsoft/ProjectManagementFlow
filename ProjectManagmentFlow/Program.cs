@@ -1,5 +1,6 @@
 //Added By Emad El Faramawi
 var builder = WebApplication.CreateBuilder(args);
+//Added By omar alsulami
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
