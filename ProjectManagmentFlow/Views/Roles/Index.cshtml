@@ -2,16 +2,16 @@
 @inject ProjectManagmentFlow.Services.Permissions.IPermissionService PermissionService
 
 @{
-    ViewData["Title"] = "الأدوار";
+    ViewData["Title"] = T["Roles_Title"].Value;
     var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesManage);
 }
 
-<div style="direction: rtl;">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">الأدوار</h3>
+        <h3 class="mb-0">@T["Roles_Title"]</h3>
         @if (canManage)
         {
-            <a class="btn btn-primary" asp-action="Create">دور جديد</a>
+            <a class="btn btn-primary" asp-action="Create">@T["Roles_New"]</a>
         }
     </div>
 
@@ -19,17 +19,17 @@
 
     @if (Model.Count == 0)
     {
-        <p class="text-muted">لا توجد أدوار بعد.</p>
+        <p class="text-muted">@T["Roles_Empty"]</p>
     }
     else
     {
         <table class="table table-striped align-middle">
             <thead>
                 <tr>
-                    <th>الاسم</th>
-                    <th>الوصف</th>
-                    <th>الصلاحيات</th>
-                    <th>الأعضاء</th>
+                    <th>@T["Roles_Name"]</th>
+                    <th>@T["Roles_Description"]</th>
+                    <th>@T["Roles_PermissionCount"]</th>
+                    <th>@T["Roles_MemberCount"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -41,14 +41,14 @@
                         <td class="text-muted">@role.Description</td>
                         <td>@role.PermissionCount</td>
                         <td>@role.MemberCount</td>
-                        <td class="text-start">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Permissions" asp-route-id="@role.Id">الصلاحيات</a>
-                            @if (canManage)
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Permissions" asp-route-id="@role.Id">@T["Roles_Permissions"]</a>
+                            @if (canManage && !role.IsSystem)
                             {
-                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@role.Id">تعديل</a>
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@role.Id">@T["Common_Edit"]</a>
                                 <form asp-action="Delete" asp-route-id="@role.Id" method="post" class="d-inline"
-                                      onsubmit="return confirm('حذف الدور @role.Name؟ سيفقد أعضاؤه صلاحياته فوراً.');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
+                                      onsubmit="return confirm('@T["Roles_DeleteConfirm", role.Name]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@T["Common_Delete"]</button>
                                 </form>
                             }
                         </td>

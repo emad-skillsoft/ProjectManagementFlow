@@ -1,10 +1,18 @@
+using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
+using ProjectManagmentFlow;
 using ProjectManagmentFlow.Data;
+using ProjectManagmentFlow.Localization;
+using ProjectManagmentFlow.ModelBinding;
 using ProjectManagmentFlow.Models;
 using ProjectManagmentFlow.Services.Roles;
 using ProjectManagmentFlow.Services.Security;
@@ -16,7 +24,16 @@ var builder = WebApplication.CreateBuilder(args);
 //Added By omar alsulami
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+// الترجمات من Resources/{culture}.json بدل ملفّات .resx
+builder.Services.AddLocalization();
+builder.Services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
+
+builder.Services.AddControllersWithViews()
+    .AddDataAnnotationsLocalization(options =>
+        options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(Messages)));
+
+// رسائل ربط النماذج المترجَمة — عبر IConfigureOptions حتّى تُحقن المُوطِّن بعد بناء الحاوية.
+builder.Services.AddSingleton<IConfigureOptions<MvcOptions>, LocalizedModelBindingMessages>();
 // 
 builder.Services.AddWebEncoders(options =>
 {
@@ -89,19 +106,41 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// اللغات التي تدعمها المنصه 
+var supportedCultures = new[] { new CultureInfo("ar-SA"), new CultureInfo("en-US") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("ar-SA"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures,
+    RequestCultureProviders =
+    {
+        new CookieRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    }
+});
+
 app.UseRouting();
 
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
+//Assets  تستثنيها من FallbackPolicy
+app.MapStaticAssets().AllowAnonymous();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    await DbInitializer.SeedAsync(context, passwordHasher);
+}
 
 app.Run();

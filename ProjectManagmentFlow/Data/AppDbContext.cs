@@ -31,6 +31,8 @@ public class AppDbContext : DbContext
         {
             entity.Property(r => r.Name).HasMaxLength(128).IsRequired();
             entity.Property(r => r.Description).HasMaxLength(512);
+            entity.Property(r => r.NameEn).HasMaxLength(128);
+            entity.Property(r => r.DescriptionEn).HasMaxLength(512);
             entity.HasIndex(r => r.Name).IsUnique();
         });
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.ViewModels;
 using ProjectManagmentFlow.Services.Security;
 
@@ -9,10 +10,12 @@ namespace ProjectManagmentFlow.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthService _authService;
+    private readonly IStringLocalizer<Messages> _text;
 
-    public AccountController(IAuthService authService)
+    public AccountController(IAuthService authService, IStringLocalizer<Messages> text)
     {
         _authService = authService;
+        _text = text;
     }
 
     [HttpGet]
@@ -58,12 +61,11 @@ public class AccountController : Controller
         return View("~/Views/Shared/AccessDenied.cshtml");
     }
 
-    private static string DescribeFailure(LoginResult result) => result switch
+    private string DescribeFailure(LoginResult result) => result switch
     {
-        LoginResult.Disabled => "هذا الحساب غير مفعّل. راجع مدير النظام.",
-        LoginResult.LockedOut =>
-            $"تم إيقاف الحساب مؤقّتاً بعد تكرار المحاولات الفاشلة. أعد المحاولة بعد {AuthService.LockoutDuration.TotalMinutes:0} دقائق.",
-        _ => "بيانات الدخول غير صحيحة."
+        LoginResult.Disabled  => _text["Login_Disabled"],
+        LoginResult.LockedOut => _text["Login_LockedOut", AuthService.LockoutDuration.TotalMinutes.ToString("0")],
+        _                     => _text["Login_InvalidCredentials"]
     };
 
     /// <summary>

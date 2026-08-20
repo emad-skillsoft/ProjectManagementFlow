@@ -2,18 +2,18 @@
 @inject ProjectManagmentFlow.Services.Permissions.IPermissionService PermissionService
 
 @{
-    ViewData["Title"] = $"صلاحيات الدور: {Model.RoleName}";
+    ViewData["Title"] = T["RolePerms_Title", Model.RoleName].Value;
     var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesManage);
 }
 
-<div style="direction: rtl;">
+<div>
     <h3 class="mb-3">@ViewData["Title"]</h3>
 
     <partial name="_StatusMessage" />
 
     @if (!canManage)
     {
-        <div class="alert alert-secondary">لديك صلاحية العرض فقط.</div>
+        <div class="alert alert-secondary">@T["RolePerms_ReadOnly"]</div>
     }
 
     <form asp-action="Permissions" asp-route-id="@Model.RoleId" method="post">
@@ -33,8 +33,8 @@
 
         @if (canManage)
         {
-            <button type="submit" class="btn btn-primary">حفظ الصلاحيات</button>
+            <button type="submit" class="btn btn-primary">@T["RolePerms_Save"]</button>
         }
-        <a class="btn btn-link" asp-action="Index">رجوع</a>
+        <a class="btn btn-link" asp-action="Index">@T["Common_Back"]</a>
     </form>
 </div>

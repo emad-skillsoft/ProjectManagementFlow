@@ -14,4 +14,9 @@
     </PackageReference>
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Content Update="Resources/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

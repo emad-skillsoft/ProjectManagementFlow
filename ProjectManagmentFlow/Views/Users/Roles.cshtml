@@ -1,10 +1,10 @@
 @model UserRolesViewModel
 
 @{
-    ViewData["Title"] = $"أدوار: {Model.DisplayName}";
+    ViewData["Title"] = T["UserRoles_Title", Model.DisplayName].Value;
 }
 
-<div style="direction: rtl;">
+<div>
     <h3 class="mb-1">@ViewData["Title"]</h3>
     <p class="text-muted" dir="ltr">@Model.Email</p>
 
@@ -12,9 +12,7 @@
 
     @if (Model.IsSelf)
     {
-        <div class="alert alert-warning">
-            هذا حسابك. لا يمكنك تعديل أدوارك بنفسك حتّى لا تحبس نفسك خارج النظام.
-        </div>
+        <div class="alert alert-warning">@T["UserRoles_SelfWarning"]</div>
     }
 
     <form asp-action="Roles" asp-route-id="@Model.UserId" method="post">
@@ -34,8 +32,8 @@
 
         @if (!Model.IsSelf)
         {
-            <button type="submit" class="btn btn-primary">حفظ الأدوار</button>
+            <button type="submit" class="btn btn-primary">@T["UserRoles_Save"]</button>
         }
-        <a class="btn btn-link" asp-action="Index">رجوع</a>
+        <a class="btn btn-link" asp-action="Index">@T["Common_Back"]</a>
     </form>
 </div>

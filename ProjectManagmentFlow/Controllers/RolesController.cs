@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.Authorization;
 using ProjectManagmentFlow.Filters;
 using ProjectManagmentFlow.Services.Roles;
@@ -13,15 +14,18 @@ public class RolesController : Controller
     private readonly IRoleQueryService _roleQueries;
     private readonly IRoleCommandService _roleCommands;
     private readonly IPermissionCatalog _permissionCatalog;
+    private readonly IStringLocalizer<Messages> _text;
 
     public RolesController(
         IRoleQueryService roleQueries,
         IRoleCommandService roleCommands,
-        IPermissionCatalog permissionCatalog)
+        IPermissionCatalog permissionCatalog,
+        IStringLocalizer<Messages> text)
     {
         _roleQueries = roleQueries;
         _roleCommands = roleCommands;
         _permissionCatalog = permissionCatalog;
+        _text = text;
     }
 
     [HttpGet]
@@ -32,8 +36,9 @@ public class RolesController : Controller
         return View(summaries.Select(s => new RoleListItemViewModel
         {
             Id = s.Id,
-            Name = s.Name,
-            Description = s.Description,
+            Name = DisplayNames.Role(_text, s.Name, s.NameEn, s.IsSystem),
+            Description = DisplayNames.RoleDescription(_text, s.Name, s.Description, s.DescriptionEn, s.IsSystem),
+            IsSystem = s.IsSystem,
             PermissionCount = s.PermissionCount,
             MemberCount = s.MemberCount
         }).ToList());
@@ -52,7 +57,8 @@ public class RolesController : Controller
 
         try
         {
-            await _roleCommands.CreateAsync(viewModel.Name, viewModel.Description, cancellationToken);
+            await _roleCommands.CreateAsync(
+                viewModel.Name, viewModel.Description, viewModel.NameEn, viewModel.DescriptionEn, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {
@@ -60,7 +66,7 @@ public class RolesController : Controller
             return View("Form", viewModel);
         }
 
-        TempData["Status"] = "تم إنشاء الدور.";
+        TempData["Status"] = _text["Status_RoleCreated"].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -75,7 +81,9 @@ public class RolesController : Controller
         {
             Id = role.Id,
             Name = role.Name,
-            Description = role.Description
+            Description = role.Description,
+            NameEn = role.NameEn,
+            DescriptionEn = role.DescriptionEn
         });
     }
 
@@ -87,14 +95,15 @@ public class RolesController : Controller
         viewModel.Id = id;
         if (!ModelState.IsValid) return View("Form", viewModel);
 
-        var updated = await _roleCommands.UpdateAsync(id, viewModel.Name, viewModel.Description, cancellationToken);
+        var updated = await _roleCommands.UpdateAsync(
+            id, viewModel.Name, viewModel.Description, viewModel.NameEn, viewModel.DescriptionEn, cancellationToken);
         if (!updated)
         {
-            ModelState.AddModelError(nameof(viewModel.Name), "تعذّر الحفظ.");
+            ModelState.AddModelError(nameof(viewModel.Name), _text["RoleForm_SaveFailed"]);
             return View("Form", viewModel);
         }
 
-        TempData["Status"] = "تم حفظ التعديلات.";
+        TempData["Status"] = _text["Status_RoleSaved"].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -104,7 +113,7 @@ public class RolesController : Controller
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var deleted = await _roleCommands.DeleteAsync(id, cancellationToken);
-        TempData["Status"] = deleted ? "تم حذف الدور." : "الدور غير موجود.";
+        TempData["Status"] = (deleted ? _text["Status_RoleDeleted"] : _text["Status_RoleNotFound"]).Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -123,12 +132,12 @@ public class RolesController : Controller
         return View(new RolePermissionsViewModel
         {
             RoleId = role.Id,
-            RoleName = role.Name,
+            RoleName = DisplayNames.Role(_text, role.Name, role.NameEn, role.IsSystem),
             Permissions = all.Select(p => new PermissionChoice
             {
                 Id = p.Id,
                 Name = p.Name,
-                Description = p.Description,
+                Description = DisplayNames.Permission(_text, p.Name, p.Description),
                 IsGranted = granted.Contains(p.Id)
             }).ToList()
         });
@@ -152,7 +161,7 @@ public class RolesController : Controller
 
         if (toGrant.Count > 0 && !await _roleCommands.AssignPermissionsAsync(id, toGrant, cancellationToken))
         {
-            TempData["Status"] = "تعذّر منح بعض الصلاحيات — ربّما حُذفت.";
+            TempData["Status"] = _text["Status_GrantFailed"].Value;
             return RedirectToAction(nameof(Permissions), new { id });
         }
 
@@ -162,8 +171,8 @@ public class RolesController : Controller
         }
 
         TempData["Status"] = toGrant.Count + toRevoke.Count == 0
-            ? "لا تغيير."
-            : "تم تحديث صلاحيات الدور، وأُبطلت جلسات أعضائه القائمة.";
+            ? _text["Status_NoChange"].Value
+            : _text["Status_RolePermissionsUpdated"].Value;
 
         return RedirectToAction(nameof(Permissions), new { id });
     }

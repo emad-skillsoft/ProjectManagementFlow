@@ -1,9 +1,9 @@
 @{
-    ViewData["Title"] = "غير مصرح";
+    ViewData["Title"] = T["AccessDenied_Title"].Value;
 }
 
-<div class="container text-center mt-5" style="direction: rtl;">
+<div class="container text-center mt-5">
     <h1 class="text-danger display-1">403</h1>
-    <h2 class="mb-3">عذراً، لا تمتلك الصلاحية المطلوبة للوصول لهذا الإجراء.</h2>
-    <a href="/" class="btn btn-primary">العودة للرئيسية</a>
+    <h2 class="mb-3">@T["AccessDenied_Message"]</h2>
+    <a href="/" class="btn btn-primary">@T["AccessDenied_Back"]</a>
 </div>

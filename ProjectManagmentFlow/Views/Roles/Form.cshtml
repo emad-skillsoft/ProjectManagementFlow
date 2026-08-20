@@ -1,10 +1,10 @@
 @model RoleFormViewModel
 
 @{
-    ViewData["Title"] = Model.IsNew ? "دور جديد" : $"تعديل الدور: {Model.Name}";
+    ViewData["Title"] = Model.IsNew ? T["RoleForm_New"].Value : T["RoleForm_Edit", Model.Name].Value;
 }
 
-<div class="container" style="max-width: 560px; direction: rtl;">
+<div class="container" style="max-width: 560px;">
     <h3 class="mb-4">@ViewData["Title"]</h3>
 
     <form asp-action="@(Model.IsNew ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post">
@@ -22,8 +22,23 @@
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
-        <button type="submit" class="btn btn-primary">حفظ</button>
-        <a class="btn btn-link" asp-action="Index">إلغاء</a>
+        <hr class="my-4" />
+        <p class="text-muted small">@T["RoleForm_EnglishHint"]</p>
+
+        <div class="mb-3">
+            <label asp-for="NameEn" class="form-label"></label>
+            <input asp-for="NameEn" class="form-control" dir="ltr" />
+            <span asp-validation-for="NameEn" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DescriptionEn" class="form-label"></label>
+            <textarea asp-for="DescriptionEn" class="form-control" rows="2" dir="ltr"></textarea>
+            <span asp-validation-for="DescriptionEn" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">@T["Common_Save"]</button>
+        <a class="btn btn-link" asp-action="Index">@T["Common_Cancel"]</a>
     </form>
 </div>
 

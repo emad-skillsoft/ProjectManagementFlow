@@ -7,6 +7,7 @@ public class RoleListItemViewModel
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public bool IsSystem { get; set; }
     public int PermissionCount { get; set; }
     public int MemberCount { get; set; }
 }
@@ -15,14 +16,22 @@ public class RoleFormViewModel
 {
     public Guid? Id { get; set; }
 
-    [Required(ErrorMessage = "اسم الدور مطلوب")]
-    [StringLength(128, ErrorMessage = "اسم الدور طويل جداً")]
-    [Display(Name = "اسم الدور")]
+    [Required(ErrorMessage = "RoleForm_NameRequired")]
+    [StringLength(128, ErrorMessage = "RoleForm_NameTooLong")]
+    [Display(Name = "RoleForm_Name")]
     public string Name { get; set; } = string.Empty;
 
-    [StringLength(512, ErrorMessage = "الوصف طويل جداً")]
-    [Display(Name = "الوصف")]
+    [StringLength(512, ErrorMessage = "RoleForm_DescriptionTooLong")]
+    [Display(Name = "RoleForm_Description")]
     public string Description { get; set; } = string.Empty;
+
+    [StringLength(128, ErrorMessage = "RoleForm_NameTooLong")]
+    [Display(Name = "RoleForm_NameEn")]
+    public string? NameEn { get; set; }
+
+    [StringLength(512, ErrorMessage = "RoleForm_DescriptionTooLong")]
+    [Display(Name = "RoleForm_DescriptionEn")]
+    public string? DescriptionEn { get; set; }
 
     public bool IsNew => Id is null;
 }

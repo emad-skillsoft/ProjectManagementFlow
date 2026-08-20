@@ -17,7 +17,10 @@ public class RoleQueryService : IRoleQueryService
             .Select(r => new RoleSummary(
                 r.Id,
                 r.Name,
+                r.NameEn,
                 r.Description,
+                r.DescriptionEn,
+                r.IsSystem,
                 r.RolePermissions.Count,
                 r.UserRoles.Count))
             .ToListAsync(cancellationToken);

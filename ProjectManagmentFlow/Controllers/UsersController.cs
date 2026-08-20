@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.Authorization;
 using ProjectManagmentFlow.Filters;
 using ProjectManagmentFlow.Services.Roles;
@@ -14,15 +15,18 @@ public class UsersController : Controller
     private readonly IUserQueryService _userQueries;
     private readonly IRoleQueryService _roleQueries;
     private readonly IUserRoleCommandService _userRoleCommands;
+    private readonly IStringLocalizer<Messages> _text;
 
     public UsersController(
         IUserQueryService userQueries,
         IRoleQueryService roleQueries,
-        IUserRoleCommandService userRoleCommands)
+        IUserRoleCommandService userRoleCommands,
+        IStringLocalizer<Messages> text)
     {
         _userQueries = userQueries;
         _roleQueries = roleQueries;
         _userRoleCommands = userRoleCommands;
+        _text = text;
     }
 
     [HttpGet]
@@ -38,7 +42,10 @@ public class UsersController : Controller
             IsActive = u.IsActive,
             IsLockedOut = u.LockoutEndUtc > DateTime.UtcNow,
             LastSeenAt = u.LastSeenAt,
-            Roles = u.UserRoles.Select(ur => ur.Role.Name).OrderBy(name => name).ToList()
+            Roles = u.UserRoles
+                .Select(ur => DisplayNames.Role(_text, ur.Role.Name, ur.Role.NameEn, ur.Role.IsSystem))
+                .OrderBy(name => name)
+                .ToList()
         }).ToList());
     }
 
@@ -62,7 +69,7 @@ public class UsersController : Controller
 
         if (IsSelf(id))
         {
-            TempData["Status"] = "لا يمكنك تعديل أدوار حسابك — اطلب ذلك من مدير آخر.";
+            TempData["Status"] = _text["Status_CannotEditOwnRoles"].Value;
             return RedirectToAction(nameof(Roles), new { id });
         }
 
@@ -74,7 +81,7 @@ public class UsersController : Controller
 
         if (toAssign.Count > 0 && !await _userRoleCommands.AssignRolesToUserAsync(id, toAssign, cancellationToken))
         {
-            TempData["Status"] = "تعذّر إسناد بعض الأدوار — ربّما حُذفت.";
+            TempData["Status"] = _text["Status_AssignRolesFailed"].Value;
             return RedirectToAction(nameof(Roles), new { id });
         }
 
@@ -84,8 +91,8 @@ public class UsersController : Controller
         }
 
         TempData["Status"] = toAssign.Count + toRemove.Count == 0
-            ? "لا تغيير."
-            : "تم تحديث أدوار المستخدم، وأُبطلت جلسته القائمة.";
+            ? _text["Status_NoChange"].Value
+            : _text["Status_UserRolesUpdated"].Value;
 
         return RedirectToAction(nameof(Roles), new { id });
     }
@@ -107,8 +114,8 @@ public class UsersController : Controller
             Roles = allRoles.Select(r => new RoleChoice
             {
                 Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
+                Name = DisplayNames.Role(_text, r.Name, r.NameEn, r.IsSystem),
+                Description = DisplayNames.RoleDescription(_text, r.Name, r.Description, r.DescriptionEn, r.IsSystem),
                 IsAssigned = assigned.Contains(r.Id)
             }).ToList()
         };

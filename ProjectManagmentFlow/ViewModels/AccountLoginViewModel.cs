@@ -4,14 +4,14 @@ namespace ProjectManagmentFlow.ViewModels;
 
 public class AccountLoginViewModel
 {
-    [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
-    [EmailAddress(ErrorMessage = "صيغة البريد الإلكتروني غير صحيحة")]
-    [Display(Name = "البريد الإلكتروني")]
+    [Required(ErrorMessage = "Login_EmailRequired")]
+    [EmailAddress(ErrorMessage = "Login_EmailInvalid")]
+    [Display(Name = "Login_Email")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "كلمة المرور مطلوبة")]
+    [Required(ErrorMessage = "Login_PasswordRequired")]
     [DataType(DataType.Password)]
-    [Display(Name = "كلمة المرور")]
+    [Display(Name = "Login_Password")]
     public string Password { get; set; } = string.Empty;
 
     public string? ReturnUrl { get; set; }

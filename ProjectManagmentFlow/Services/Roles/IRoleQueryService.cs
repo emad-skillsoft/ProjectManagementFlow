@@ -3,7 +3,9 @@ using ProjectManagmentFlow.Models;
 namespace ProjectManagmentFlow.Services.Roles;
 
 /// <summary>ملخّص دور مع عدد صلاحياته وأعضائه، للعرض في القوائم دون تحميل العلاقات كاملةً.</summary>
-public record RoleSummary(Guid Id, string Name, string Description, int PermissionCount, int MemberCount);
+public record RoleSummary(
+    Guid Id, string Name, string? NameEn, string Description, string? DescriptionEn,
+    bool IsSystem, int PermissionCount, int MemberCount);
 
 public interface IRoleQueryService
 {

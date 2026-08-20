@@ -2,23 +2,23 @@
 @inject ProjectManagmentFlow.Services.Permissions.IPermissionService PermissionService
 
 @{
-    ViewData["Title"] = "المستخدمون";
+    ViewData["Title"] = T["Users_Title"].Value;
     var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.UsersManage);
 }
 
-<div style="direction: rtl;">
-    <h3 class="mb-3">المستخدمون</h3>
+<div>
+    <h3 class="mb-3">@T["Users_Title"]</h3>
 
     <partial name="_StatusMessage" />
 
     <table class="table table-striped align-middle">
         <thead>
             <tr>
-                <th>الاسم</th>
-                <th>البريد</th>
-                <th>الأدوار</th>
-                <th>الحالة</th>
-                <th>آخر ظهور</th>
+                <th>@T["Users_Name"]</th>
+                <th>@T["Users_Email"]</th>
+                <th>@T["Users_Roles"]</th>
+                <th>@T["Users_Status"]</th>
+                <th>@T["Users_LastSeen"]</th>
                 <th></th>
             </tr>
         </thead>
@@ -31,7 +31,7 @@
                     <td>
                         @if (user.Roles.Count == 0)
                         {
-                            <span class="text-muted">بلا دور</span>
+                            <span class="text-muted">@T["Users_NoRole"]</span>
                         }
                         else
                         {
@@ -44,24 +44,24 @@
                     <td>
                         @if (!user.IsActive)
                         {
-                            <span class="badge text-bg-danger">معطّل</span>
+                            <span class="badge text-bg-danger">@T["Users_Disabled"]</span>
                         }
                         else if (user.IsLockedOut)
                         {
-                            <span class="badge text-bg-warning">موقوف مؤقّتاً</span>
+                            <span class="badge text-bg-warning">@T["Users_LockedOut"]</span>
                         }
                         else
                         {
-                            <span class="badge text-bg-success">نشط</span>
+                            <span class="badge text-bg-success">@T["Users_Active"]</span>
                         }
                     </td>
                     <td class="text-muted small" dir="ltr">
                         @(user.LastSeenAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")
                     </td>
-                    <td class="text-start">
+                    <td class="text-end">
                         @if (canManage)
                         {
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Roles" asp-route-id="@user.Id">الأدوار</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Roles" asp-route-id="@user.Id">@T["Users_ManageRoles"]</a>
                         }
                     </td>
                 </tr>

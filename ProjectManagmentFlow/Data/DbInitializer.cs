@@ -25,8 +25,8 @@ public static class DbInitializer
         var permUsersManage = await EnsurePermissionAsync(context, PermissionNames.UsersManage, "إسناد الأدوار للمستخدمين وسحبها");
 
         // 2. الأدوار (Roles)
-        var adminRole = await EnsureRoleAsync(context, "Admin", "مدير النظام بكامل الصلاحيات");
-        var memberRole = await EnsureRoleAsync(context, "Member", "عضو باطّلاع فقط على الأدوار والمستخدمين");
+        var adminRole = await EnsureRoleAsync(context, "Admin", "مدير النظام بكامل الصلاحيات", isSystem: true);
+        var memberRole = await EnsureRoleAsync(context, "Member", "عضو باطّلاع فقط على الأدوار والمستخدمين", isSystem: true);
 
         await context.SaveChangesAsync();
 
@@ -61,12 +61,18 @@ public static class DbInitializer
         return permission;
     }
 
-    private static async Task<Role> EnsureRoleAsync(AppDbContext context, string name, string description)
+    private static async Task<Role> EnsureRoleAsync(
+        AppDbContext context, string name, string description, bool isSystem = false)
     {
         var role = await context.Roles.FirstOrDefaultAsync(r => r.Name == name);
-        if (role is not null) return role;
+        if (role is not null)
+        {
+            // تصحيح ذاتيّ لقاعدة زُرعت قبل إضافة IsSystem.
+            role.IsSystem = isSystem;
+            return role;
+        }
 
-        role = new Role { Name = name, Description = description };
+        role = new Role { Name = name, Description = description, IsSystem = isSystem };
         context.Roles.Add(role);
         return role;
     }
