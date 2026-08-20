@@ -1,0 +1,4 @@
+@if (TempData["Status"] is string status && !string.IsNullOrWhiteSpace(status))
+{
+    <div class="alert alert-info" role="status">@status</div>
+}

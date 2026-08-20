@@ -1,0 +1,71 @@
+@model List<UserListItemViewModel>
+@inject ProjectManagmentFlow.Services.Permissions.IPermissionService PermissionService
+
+@{
+    ViewData["Title"] = "المستخدمون";
+    var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.UsersManage);
+}
+
+<div style="direction: rtl;">
+    <h3 class="mb-3">المستخدمون</h3>
+
+    <partial name="_StatusMessage" />
+
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>الاسم</th>
+                <th>البريد</th>
+                <th>الأدوار</th>
+                <th>الحالة</th>
+                <th>آخر ظهور</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@user.DisplayName</td>
+                    <td dir="ltr">@user.Email</td>
+                    <td>
+                        @if (user.Roles.Count == 0)
+                        {
+                            <span class="text-muted">بلا دور</span>
+                        }
+                        else
+                        {
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="badge text-bg-secondary">@role</span>
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (!user.IsActive)
+                        {
+                            <span class="badge text-bg-danger">معطّل</span>
+                        }
+                        else if (user.IsLockedOut)
+                        {
+                            <span class="badge text-bg-warning">موقوف مؤقّتاً</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-success">نشط</span>
+                        }
+                    </td>
+                    <td class="text-muted small" dir="ltr">
+                        @(user.LastSeenAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")
+                    </td>
+                    <td class="text-start">
+                        @if (canManage)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Roles" asp-route-id="@user.Id">الأدوار</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
