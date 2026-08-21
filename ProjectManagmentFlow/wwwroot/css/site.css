@@ -1,31 +1,944 @@
+:root {
+  --ds-green-50: #ebf7f1;
+  --ds-green-100: #d3eedf;
+  --ds-green-200: #a8ddc0;
+  --ds-green-300: #74c69d;
+  --ds-green-400: #41ac77;
+  --ds-green-500: #22945d;
+  --ds-green-600: #1b8354;
+  --ds-green-700: #156b45;
+  --ds-green-800: #105436;
+  --ds-green-900: #0c3f29;
+  --ds-neutral-50: #f6f7f8;
+  --ds-neutral-100: #f1f3f5;
+  --ds-neutral-200: #e1e5e8;
+  --ds-neutral-300: #c9cfd4;
+  --ds-neutral-400: #9aa3ab;
+  --ds-neutral-500: #6c7680;
+  --ds-neutral-600: #545e67;
+  --ds-neutral-700: #3e4750;
+  --ds-neutral-800: #2b333a;
+  --ds-neutral-900: #1b2127;
+  --ds-gold-50: #fbf4dc;
+  --ds-gold-100: #f5e7b4;
+  --ds-gold-200: #ead070;
+  --ds-gold-300: #d9b93e;
+  --ds-gold-400: #c9a227;
+  --ds-gold-500: #a98618;
+  --ds-gold-600: #8a6d14;
+  --ds-gold-700: #6e5710;
+  --ds-gold-800: #54420c;
+  --ds-gold-900: #3b2e08;
+  --ds-danger: #b91c1c;
+  --ds-danger-hover: #991616;
+  --ds-warning: #92400e;
+  --ds-info: #1e40af;
+  --ds-success-bg: var(--ds-green-50);
+  --ds-success-border: var(--ds-green-200);
+  --ds-success-text: var(--ds-green-700);
+  --ds-warning-bg: #fdf3d7;
+  --ds-warning-border: #f0d48a;
+  --ds-warning-accent: #d97706;
+  --ds-danger-bg: #fdecec;
+  --ds-danger-border: #f5c6c6;
+  --ds-info-bg: #e8effc;
+  --ds-info-border: #c3d4f4;
+  --ds-info-accent: #2563eb;
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-7: 1.75rem;
+  --ds-space-8: 2rem;
+  --ds-space-10: 2.5rem;
+  --ds-space-12: 3rem;
+  --ds-radius-sm: 0.375rem;
+  --ds-radius-md: 0.625rem;
+  --ds-radius-lg: 0.875rem;
+  --ds-radius-full: 999px;
+  --ds-shadow-sm: 0 1px 2px rgb(27 33 39 / 6%);
+  --ds-shadow-md: 0 4px 12px rgb(27 33 39 / 10%);
+  --ds-shadow-lg: 0 12px 32px rgb(27 33 39 / 16%);
+  --ds-font: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --bs-primary: var(--ds-green-600);
+  --bs-primary-rgb: 27, 131, 84;
+  --bs-success: var(--ds-green-600);
+  --bs-success-rgb: 27, 131, 84;
+  --bs-danger: var(--ds-danger);
+  --bs-danger-rgb: 185, 28, 28;
+  --bs-warning: #f0d48a;
+  --bs-warning-rgb: 240, 212, 138;
+  --bs-info: #c3d4f4;
+  --bs-info-rgb: 195, 212, 244;
+  --bs-body-color: var(--ds-neutral-900);
+  --bs-body-color-rgb: 27, 33, 39;
+  --bs-body-bg: var(--ds-neutral-50);
+  --bs-body-bg-rgb: 246, 247, 248;
+  --bs-secondary-color: var(--ds-neutral-600);
+  --bs-secondary-rgb: 84, 94, 103;
+  --bs-border-color: var(--ds-neutral-200);
+  --bs-link-color: var(--ds-green-700);
+  --bs-link-color-rgb: 21, 107, 69;
+  --bs-link-hover-color: var(--ds-green-900);
+  --bs-font-sans-serif: var(--ds-font);
+  --bs-border-radius: 0.625rem;
+  --bs-border-radius-sm: 0.375rem;
+  --bs-border-radius-lg: 0.875rem;
+  --bs-focus-ring-color: rgb(116 198 157 / 45%);
+}
+
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
   min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  margin-bottom: 60px;
+  background: var(--ds-neutral-50);
+  color: var(--ds-neutral-900);
+  font-family: var(--ds-font);
+  font-size: 1.0rem;
+  line-height: 1.8;
+  min-height: 100vh;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+:focus-visible {
+  outline: 3px solid var(--ds-green-300) !important;
+  outline-offset: 2px;
+  box-shadow: none !important;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.ds-skip-link {
+  inset-block-start: 0;
+  inset-inline-start: 1rem;
+  position: fixed;
+  transform: translateY(-150%);
+  z-index: 1100;
+}
+
+.ds-skip-link:focus {
+  transform: translateY(0.5rem);
+}
+
+.ds-site-header,
+.ds-site-footer,
+.ds-hero,
+.ds-code-panel {
+  background: var(--ds-green-900);
+  color: #fff;
+}
+
+.ds-site-header {
+  border-block-end: 1px solid rgb(255 255 255 / 16%);
+}
+
+.ds-brand-mark {
+  align-items: center;
+  background: #fff;
+  border-radius: 50%;
+  color: var(--ds-green-900);
+  display: inline-flex;
+  font-weight: 700;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.ds-site-header .navbar-brand,
+.ds-site-header .nav-link {
+  color: #fff;
+}
+
+.ds-site-header .nav-link:hover,
+.ds-site-header .nav-link:focus,
+.ds-site-header .nav-link[aria-current="page"] {
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+
+.ds-site-header .navbar-toggler {
+  border-color: rgb(255 255 255 / 40%);
+}
+
+.ds-site-header .navbar-toggler-icon {
+  filter: invert(1) grayscale(1) brightness(3);
+}
+
+.ds-hero {
+  border-radius: var(--bs-border-radius-lg);
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.ds-eyebrow {
+  color: var(--ds-green-200);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ds-search-panel,
+.ds-component-card {
+  background: #fff;
+  border: 1px solid var(--ds-neutral-200);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.ds-component-card {
+  min-width: 0;
+  overflow: hidden;
+  scroll-margin-block-start: 1.5rem;
+  width: 100%;
+}
+
+.ds-component-header {
+  border-block-end: 1px solid var(--ds-neutral-200);
+  padding: 1.25rem;
+}
+
+.ds-component-preview {
+  background: var(--ds-neutral-50);
+  border: 1px solid var(--ds-neutral-200);
+  border-radius: var(--bs-border-radius);
+  min-height: 8rem;
+  padding: 1.25rem;
+}
+
+.ds-api-panel {
+  border-inline-start: 1px solid var(--ds-neutral-200);
+}
+
+.ds-api-token {
+  background: var(--ds-neutral-100);
+  border-radius: 0.25rem;
+  color: var(--ds-neutral-700);
+  display: inline-block;
+  font-size: 0.875rem;
+  padding: 0.125rem 0.375rem;
+}
+
+.ds-code-tabs {
+  border-block-start: 1px solid var(--ds-neutral-200);
+}
+
+.ds-code-tabs .nav-tabs {
+  background: var(--ds-neutral-100);
+  border-block-end: 0;
+  padding-inline: 0.75rem;
+}
+
+.ds-code-tabs .nav-link {
+  border: 0;
+  border-block-end: 3px solid transparent;
+  border-radius: 0;
+  color: var(--ds-neutral-600);
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-height: 2.75rem;
+}
+
+.ds-code-tabs .nav-link.active {
+  background: transparent;
+  border-block-end-color: var(--ds-green-600);
+  color: var(--ds-green-700);
+}
+
+.ds-code-panel {
+  min-width: 0;
+  min-height: 8rem;
+  padding: 1rem;
+  position: relative;
+}
+
+.ds-code-panel pre {
+  color: #fff;
+  direction: ltr;
+  font-size: 0.875rem;
+  margin: 0;
+  overflow-x: auto;
+  padding-inline-end: 5rem;
+  text-align: left;
+  white-space: pre;
+}
+
+.ds-copy-button {
+  inset-block-start: 0.75rem;
+  inset-inline-end: 0.75rem;
+  position: absolute;
+  z-index: 2;
+}
+
+.btn {
+  --bs-btn-font-size: 0.875rem;
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-x: 1.25rem;
+  --bs-btn-padding-y: 0.55rem;
+  min-height: 2.75rem;
+}
+
+.btn-sm {
+  min-height: 2.25rem;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--ds-green-600);
+  --bs-btn-border-color: var(--ds-green-600);
+  --bs-btn-hover-bg: var(--ds-green-700);
+  --bs-btn-hover-border-color: var(--ds-green-700);
+  --bs-btn-active-bg: var(--ds-green-900);
+  --bs-btn-active-border-color: var(--ds-green-900);
+  --bs-btn-disabled-bg: var(--ds-neutral-300);
+  --bs-btn-disabled-border-color: var(--ds-neutral-300);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--ds-green-700);
+  --bs-btn-border-color: var(--ds-green-200);
+  --bs-btn-hover-bg: var(--ds-green-50);
+  --bs-btn-hover-border-color: var(--ds-green-300);
+  --bs-btn-hover-color: var(--ds-green-900);
+  --bs-btn-active-bg: var(--ds-green-100);
+  --bs-btn-active-border-color: var(--ds-green-300);
+  --bs-btn-active-color: var(--ds-green-900);
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--ds-danger);
+  --bs-btn-border-color: var(--ds-danger);
+  --bs-btn-hover-bg: var(--ds-danger-hover);
+  --bs-btn-hover-border-color: var(--ds-danger-hover);
+}
+
+.form-control,
+.form-select {
+  border-color: var(--ds-neutral-300);
+  min-height: 2.75rem;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--ds-green-500);
+  box-shadow: 0 0 0 0.25rem rgb(116 198 157 / 35%);
+}
+
+.form-check-input:checked {
+  background-color: var(--ds-green-600);
+  border-color: var(--ds-green-600);
+}
+
+.form-switch .form-check-input {
+  height: 1.4rem;
+  width: 2.5rem;
+}
+
+.badge {
+  --bs-badge-font-size: 0.875rem;
+  --bs-badge-font-weight: 600;
+  --bs-badge-padding-x: 0.7rem;
+  --bs-badge-padding-y: 0.38rem;
+  border: 1px solid transparent;
+}
+
+.text-bg-success {
+  background: var(--ds-green-50) !important;
+  border-color: var(--ds-green-200) !important;
+  color: var(--ds-green-700) !important;
+}
+
+.text-bg-warning {
+  background: #fdf3d7 !important;
+  border-color: #f0d48a !important;
+  color: var(--ds-warning) !important;
+}
+
+.text-bg-danger {
+  background: #fdecec !important;
+  border-color: #f5c6c6 !important;
+  color: var(--ds-danger) !important;
+}
+
+.text-bg-info {
+  background: #e8effc !important;
+  border-color: #c3d4f4 !important;
+  color: var(--ds-info) !important;
+}
+
+.ds-badge-neutral {
+  background: var(--ds-neutral-100);
+  border-color: var(--ds-neutral-200);
+  color: var(--ds-neutral-700);
+}
+
+.alert {
+  border-inline-start-width: 4px;
+}
+
+.alert-success {
+  --bs-alert-bg: var(--ds-green-50);
+  --bs-alert-border-color: var(--ds-green-200);
+  --bs-alert-color: var(--ds-green-700);
+}
+
+.alert-warning {
+  --bs-alert-bg: #fdf3d7;
+  --bs-alert-border-color: #f0d48a;
+  --bs-alert-color: var(--ds-warning);
+}
+
+.alert-danger {
+  --bs-alert-bg: #fdecec;
+  --bs-alert-border-color: #f5c6c6;
+  --bs-alert-color: var(--ds-danger);
+}
+
+.nav-tabs {
+  --bs-nav-tabs-border-color: var(--ds-neutral-200);
+  --bs-nav-tabs-link-active-color: var(--ds-green-700);
+  --bs-nav-tabs-link-active-border-color: transparent transparent var(--ds-green-600);
+}
+
+.nav-tabs .nav-link {
+  border-width: 0 0 3px;
+  color: var(--ds-neutral-600);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+  border-color: transparent transparent var(--ds-green-200);
+}
+
+.accordion {
+  --bs-accordion-active-bg: var(--ds-green-50);
+  --bs-accordion-active-color: var(--ds-green-900);
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgb(116 198 157 / 35%);
+  --bs-accordion-border-color: var(--ds-neutral-200);
+}
+
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: var(--ds-green-600);
+  --bs-dropdown-link-hover-bg: var(--ds-green-50);
+  border-color: var(--ds-neutral-200);
+  box-shadow: 0 0.5rem 1.5rem rgb(27 33 39 / 12%);
+}
+
+.page-link {
+  --bs-pagination-color: var(--ds-green-700);
+  --bs-pagination-hover-color: var(--ds-green-900);
+  --bs-pagination-hover-bg: var(--ds-green-50);
+  --bs-pagination-hover-border-color: var(--ds-green-200);
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgb(116 198 157 / 35%);
+  --bs-pagination-active-bg: var(--ds-green-600);
+  --bs-pagination-active-border-color: var(--ds-green-600);
+}
+
+.card {
+  --bs-card-border-color: var(--ds-neutral-200);
+  --bs-card-border-radius: var(--bs-border-radius-lg);
+  box-shadow: 0 1px 2px rgb(27 33 39 / 6%);
+}
+
+.progress {
+  --bs-progress-bg: var(--ds-neutral-100);
+  --bs-progress-bar-bg: var(--ds-green-600);
+  height: 0.35rem;
+}
+
+.table {
+  --bs-table-bg: #fff;
+  --bs-table-color: var(--ds-neutral-700);
+  --bs-table-border-color: var(--ds-neutral-200);
+  --bs-table-hover-bg: var(--ds-neutral-50);
+}
+
+.table thead th {
+  background: var(--ds-neutral-100);
+  color: var(--ds-neutral-600);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.modal,
+.offcanvas {
+  --bs-modal-border-color: var(--ds-neutral-200);
+  --bs-offcanvas-border-color: var(--ds-neutral-200);
+}
+
+.toast {
+  --bs-toast-bg: #fff;
+  --bs-toast-border-color: var(--ds-neutral-200);
+  box-shadow: 0 0.75rem 2rem rgb(27 33 39 / 14%);
+}
+
+.tooltip {
+  --bs-tooltip-bg: var(--ds-green-900);
+  --bs-tooltip-opacity: 1;
+}
+
+.ds-avatar {
+  align-items: center;
+  background: var(--ds-green-600);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 700;
+  height: 2rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 2rem;
+}
+
+.ds-avatar-sm {
+  font-size: 0.75rem;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.ds-avatar-md {
+  font-size: 0.875rem;
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.ds-avatar-lg {
+  font-size: 1.0rem;
+  height: 3.5rem;
+  width: 3.5rem;
+}
+
+.ds-avatar > img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.ds-avatar-group {
+  align-items: center;
+  display: flex;
+  padding-inline-start: 0.65rem;
+}
+
+.ds-avatar-group .ds-avatar {
+  margin-inline-start: -0.65rem;
+}
+
+.ds-avatar-overflow {
+  background: var(--ds-neutral-100);
+  color: var(--ds-neutral-700);
+}
+
+.ds-stepper {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-step {
+  align-items: center;
+  color: var(--ds-neutral-600);
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.55rem;
+}
+
+.ds-step-marker {
+  align-items: center;
+  background: var(--ds-neutral-100);
+  border: 2px solid var(--ds-neutral-200);
+  border-radius: 50%;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.ds-step.is-complete .ds-step-marker,
+.ds-step.is-current .ds-step-marker {
+  background: var(--ds-green-600);
+  border-color: var(--ds-green-600);
+  color: #fff;
+}
+
+.ds-step.is-current {
+  color: var(--ds-green-900);
+}
+
+.ds-task-card {
+  max-width: 23rem;
+}
+
+.ds-people-picker {
+  background: #fff;
+  border: 1px solid var(--ds-neutral-200);
+  border-radius: var(--bs-border-radius);
+  padding: 0.875rem;
+}
+
+.ds-person-option {
+  align-items: center;
+  border-radius: var(--bs-border-radius-sm);
+  cursor: pointer;
+  display: flex;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.6rem;
+}
+
+.ds-person-option:hover {
+  background: var(--ds-green-50);
+}
+
+.ds-person-option[hidden] {
+  display: none;
+}
+
+/* قائمة الأعضاء تكدّس رأسياً. كانت ds-member-row — وهي وصف صفٍّ واحد —
+   موضوعة على ul نفسها، فاصطفّ الأعضاء أفقياً وخرج الرابع من الشاشة
+   عند ٧٦٨ بكسل. العطل في اللغتين: مسألة تخطيط لا طول نصّ. */
+.ds-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ds-member-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--ds-neutral-200);
+  border-radius: var(--bs-border-radius);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-inline-size: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.ds-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-timeline-item {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding-block-end: 1.25rem;
+  position: relative;
+}
+
+.ds-timeline-item::before {
+  background: var(--ds-neutral-200);
+  content: "";
+  inset-block: 1.5rem 0;
+  inset-inline-start: 0.72rem;
+  position: absolute;
+  width: 2px;
+}
+
+.ds-timeline-item:last-child::before {
+  display: none;
+}
+
+.ds-timeline-item time {
+  color: var(--ds-neutral-500);
+  font-size: 0.875rem;
+}
+
+.ds-empty-state {
+  align-items: center;
+  background: #fff;
+  border: 1px dashed var(--ds-neutral-300);
+  border-radius: var(--bs-border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  text-align: center;
+}
+
+.ds-empty-icon {
+  align-items: center;
+  background: var(--ds-green-50);
+  border-radius: 50%;
+  color: var(--ds-green-700);
+  display: flex;
+  font-size: 1.375rem;
+  height: 3.5rem;
+  justify-content: center;
+  margin-block-end: 0.75rem;
+  width: 3.5rem;
+}
+
+.placeholder {
+  background-color: var(--ds-neutral-300);
+  border-radius: 0.25rem;
+  display: block;
+  margin-block-end: 0.65rem;
+  min-height: 0.75rem;
+}
+
+.ds-site-footer a {
+  color: #fff;
+}
+
+@media (max-width: 991.98px) {
+  .ds-api-panel {
+    border-block-start: 1px solid var(--ds-neutral-200);
+    border-inline-start: 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .ds-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-member-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .ds-code-panel pre {
+    padding-block-start: 2.5rem;
+    padding-inline-end: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ds-kanban-column__list.is-drop-target {
+  border-radius: var(--ds-component-radius-sm);
+  outline: 2px dashed var(--ds-green-700);
+  outline-offset: 3px;
+}
+
+.ds-task-card:focus-visible {
+  outline: 2px solid var(--ds-green-700);
+  outline-offset: 2px;
+}
+
+.ds-task-card__move-summary {
+  color: var(--ds-neutral-600);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-block-size: var(--ds-touch-target);
+  align-content: center;
+}
+
+.ds-task-card__move-summary:hover {
+  color: var(--ds-green-700);
+}
+
+/* العناصر المخفيّة لقارئ الشاشة (position:absolute) تحتاج أصلاً مُموضَعاً،
+   وإلا هربت من حاوية التمرير الأفقي ومدّت المستند — فتفتح اللوحة مُزاحة
+   عن محتواها على الشاشات الضيّقة. */
+.ds-kanban-column,
+.ds-task-card,
+.ds-kanban-column__count {
+  position: relative;
+}
+
+/* ═══ تصحيحات تجربة الاستخدام ═══
+   السلّم الطباعي أساسه 16px، والعربية تحتاج حجماً أكبر من اللاتينية
+   عند نفس القيمة الاسمية لأنّ النقاط والهمزات أوّل ما يضيع. */
+
+:root body {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+:root h1, :root .h1 { font-size: 1.75rem;  line-height: 1.35; }
+:root h2, :root .h2 { font-size: 1.375rem; line-height: 1.4; }
+:root h3, :root .h3 { font-size: 1.125rem; line-height: 1.45; }
+h4, .h4,
+h5, .h5,
+h6, .h6 { font-size: 1rem;     line-height: 1.5; }
+
+/* نصّ ثانوي مقروء: التباين كان 4.21 والحدّ 4.5 */
+:root {
+  --ds-neutral-500: #656f79;
+}
+
+/* أهداف اللمس: مربّع الاختيار كان 13×13 */
+.form-check-input.form-check-input {
+  block-size: 1.25rem;
+  inline-size: 1.25rem;
+  margin-block-start: 0.2em;
+}
+
+.form-check-label {
+  min-block-size: var(--ds-touch-target);
+  align-content: center;
+}
+
+/* شريط التقدّم كان 6px — رفيع إلى حدّ يصعب إدراكه */
+.ds-progress.ds-progress {
+  block-size: 0.625rem;
+}
+
+/* ═══ لوحة المهام ═══ */
+
+.ds-kanban-board.ds-kanban-board {
+  align-items: stretch;          /* كانت start فتتفاوت ارتفاعات الأعمدة */
+  padding-inline: 0.25rem;       /* حتى لا تُقصّ البطاقة عند حافّة التمرير */
+  scroll-padding-inline: 0.75rem;
+}
+
+.ds-kanban-column.ds-kanban-column {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 20rem;         /* ارتفاع افتراضي يمنع انهيار العمود الفارغ */
+}
+
+.ds-kanban-column__list.ds-kanban-column__list {
+  flex: 1 1 auto;
+}
+
+/* بطاقة المهمة: العنوان أوّلاً، والبيانات الثانوية أخفت */
+.ds-task-card__title.ds-task-card__title {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.ds-task-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ds-task-card__title a:hover,
+.ds-task-card__title a:focus-visible {
+  text-decoration: underline;
+}
+
+.ds-task-card__due.ds-task-card__due,
+.ds-task-card__metric.ds-task-card__metric {
+  font-size: 0.75rem;
+}
+
+/* الحقل القرائي صفّيّ بطبعه (لقيمة واحدة). هذا المُعدِّل يرصّ التسمية
+   فوق القيمة ويفصل بينهما، فلا تلتصقان كما كان يحدث في صفحة المهمة. */
+.ds-readonly-field--stacked.ds-readonly-field--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  row-gap: 0.25rem;
+}
+
+.ds-readonly-field--stacked > :first-child {
+  font-size: 0.875rem;
+}
+
+/* صفوف المهام الفرعية كانت أشرطة بيضاء بلا حدّ */
+.ds-task-row {
+  border: 1px solid var(--ds-neutral-200);
+  border-radius: var(--ds-component-radius-sm);
+  padding: 0.5rem 0.75rem;
+  margin-block-end: 0.375rem;
+  background: var(--ds-component-surface);
+}
+
+/* صفّ الملف مصمَّم لجدول عريض (min 41.25rem)؛ هذا المُعدِّل للقوائم الضيّقة
+   مثل «أحدث الملفات» في صفحة المشروع، وإلا انزلقت الصفحة أفقياً. */
+.ds-file-row--compact.ds-file-row--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  min-inline-size: 0;
+}
+
+.ds-file-row--compact .ds-file-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  color: var(--ds-neutral-600);
+}
+
+/* البطاقات الخمس للحالات: أربع في صفّ ثم واحدة يتيمة. اجعلها تتوزّع بمرونة. */
+.ds-project-grid--stats.ds-project-grid--stats {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 62rem) {
+  .ds-project-grid--stats.ds-project-grid--stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 36rem) {
+  .ds-project-grid--stats.ds-project-grid--stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* كان مستعملاً في العروض وغير معرَّف: التاريخ المتأخّر كان يخرج عريضاً بلا لون. */
+.ds-danger {
+  color: var(--ds-danger);
+}
+
+/* النصّ المخفيّ لقارئ الشاشة كان position:absolute بلا أصل مُموضَع، فيهرب من
+   حاويات التمرير (اللوحة، الجداول) ويمدّ المستند فتُفتح الصفحة مُزاحة عن
+   محتواها. إبقاؤه في السياق بمقاس 1px يمنع ذلك ويحفظ إعلانه للقارئ. */
+.ds-visually-clipped.ds-visually-clipped,
+.visually-hidden:not(.visually-hidden-focusable) {
+  position: static !important;   /* قاعدة Bootstrap تحمل !important */
+  display: inline-block !important;
+  block-size: 1px !important;
+  inline-size: 1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* عنصر داخل flex/grid لا ينكمش تحت مقاس محتواه ما لم يُضبط min-inline-size:0،
+   فتتجاوز مصفوفة الصلاحيات (صفوفها 632px) عرض الشاشة بدل أن تنزلق داخل حاويتها. */
+.ds-permission-workspace,
+.ds-permission-matrix,
+.ds-permission-matrix__scroll,
+.ds-permissions-page,
+.dga-app-main {
+  min-inline-size: 0;
+}
+
+.ds-permission-matrix__scroll {
+  overflow-x: auto;
+}
+
+/* شريط بيانات الترويسة كبسولة inline-flex لا تلتفّ، فتدفع الصفحة
+   إلى 575px على الجوّال. يلتفّ الآن ويصير مستطيلاً عند الالتفاف. */
+.ds-page-header__meta {
+  flex-wrap: wrap;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+@media (max-width: 36rem) {
+  .ds-page-header__meta {
+    border-radius: var(--ds-component-radius-sm);
+    row-gap: 0.25rem;
+  }
 }

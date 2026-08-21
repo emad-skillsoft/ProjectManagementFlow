@@ -1,0 +1,57 @@
+@model AppSidebarViewModel
+
+<aside class="offcanvas-lg offcanvas-start dga-app-sidebar" tabindex="-1" id="@Model.Id"
+       aria-label="@Model.Title">
+    <div class="offcanvas-header d-lg-none">
+        <h2 class="offcanvas-title dga-app-sidebar__title">@Model.Title</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#@Model.Id"
+                aria-label="@T["Common_Close"]"></button>
+    </div>
+    <div class="offcanvas-body dga-app-sidebar__body">
+        <h2 class="dga-app-sidebar__title d-none d-lg-block">@Model.Title</h2>
+        <nav aria-label="@Model.Title">
+            @foreach (var sidebarSection in Model.Sections)
+            {
+                <section class="dga-sidebar-section">
+                    @if (!string.IsNullOrWhiteSpace(sidebarSection.Label))
+                    {
+                        <h3 class="dga-sidebar-section__label">@sidebarSection.Label</h3>
+                    }
+                    <ul class="dga-sidebar-nav">
+                        @foreach (var item in sidebarSection.Items)
+                        {
+                            var isCurrent = item.IsActive || string.Equals(
+                                Context.Request.Path.Value?.TrimEnd('/'),
+                                item.Url.TrimEnd('/'),
+                                StringComparison.OrdinalIgnoreCase);
+
+                            <li>
+                                @if (item.IsDisabled)
+                                {
+                                    <span class="dga-sidebar-nav__link disabled" aria-disabled="true">
+                                        <span>@item.Label</span>
+                                        @if (!string.IsNullOrWhiteSpace(item.Badge))
+                                        {
+                                            <span class="badge rounded-pill text-bg-secondary">@item.Badge</span>
+                                        }
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a class="dga-sidebar-nav__link @(isCurrent ? "active" : null)"
+                                       href="@item.Url" aria-current="@(isCurrent ? "page" : null)">
+                                        <span>@item.Label</span>
+                                        @if (!string.IsNullOrWhiteSpace(item.Badge))
+                                        {
+                                            <span class="badge rounded-pill text-bg-secondary">@item.Badge</span>
+                                        }
+                                    </a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </nav>
+    </div>
+</aside>

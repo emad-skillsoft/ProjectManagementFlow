@@ -14,6 +14,8 @@ using ProjectManagmentFlow.Data;
 using ProjectManagmentFlow.Localization;
 using ProjectManagmentFlow.ModelBinding;
 using ProjectManagmentFlow.Models;
+using ProjectManagmentFlow.Filters;
+using ProjectManagmentFlow.Services.Layout;
 using ProjectManagmentFlow.Services.Roles;
 using ProjectManagmentFlow.Services.Security;
 using ProjectManagmentFlow.Services.Users;
@@ -28,7 +30,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddLocalization();
 builder.Services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
 
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<LayoutResultFilter>();
+})
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(Messages)));
 
@@ -94,6 +99,10 @@ builder.Services.AddScoped<IUserRoleQueryService, UserRoleQueryService>();
 builder.Services.AddScoped<IUserRoleCommandService, UserRoleCommandService>();
 builder.Services.AddScoped<IPermissionCatalog, PermissionCatalog>();
 builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+
+// يعبّن القشرة (ترويسة/شريط جانبي/تذييل) لكل عرض حسب صلاحيّات المستخدم —
+// يُحقنها LayoutResultFilter في ViewData.
+builder.Services.AddScoped<LayoutBuilder>();
 
 var app = builder.Build();
 

@@ -9,7 +9,8 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        return View();
+        // الصفحة الرئيسيّة هي لوحة معلومات؛ كل ما عداه خلف صلاحيّات معيّنة.
+        return RedirectToAction("Index", "Dashboard");
     }
 
     [AllowAnonymous]

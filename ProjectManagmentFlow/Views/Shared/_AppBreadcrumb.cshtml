@@ -1,0 +1,34 @@
+@model AppBreadcrumbViewModel
+@{
+    var displayItems = Model.GetDisplayItems();
+    var separator = DisplayCulture.IsArabic ? "‹" : Model.Separator;
+}
+
+<div class="dga-app-breadcrumb">
+    <div class="dga-app-breadcrumb__inner">
+        <nav class="ds-hierarchy-breadcrumb" aria-label="@Model.Label">
+            <ol>
+                @for (var index = 0; index < displayItems.Count; index++)
+                {
+                    var item = displayItems[index];
+                    @if (index > 0)
+                    {
+                        <li class="ds-hierarchy-breadcrumb__separator" aria-hidden="true">@separator</li>
+                    }
+                    <li aria-current="@(item.IsCurrent ? "page" : null)">
+                        @if (item.IsCurrent || string.IsNullOrWhiteSpace(item.Url))
+                        {
+                            @item.Label
+                        }
+                        else
+                        {
+                            <a class="@(item.IsFolded ? "ds-hierarchy-breadcrumb__fold" : null)"
+                               href="@item.Url" title="@item.Title"
+                               aria-label="@(item.IsFolded ? item.AccessibleLabel : null)">@item.Label</a>
+                        }
+                    </li>
+                }
+            </ol>
+        </nav>
+    </div>
+</div>

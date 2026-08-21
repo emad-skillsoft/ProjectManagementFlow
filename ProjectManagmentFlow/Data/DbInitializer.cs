@@ -23,6 +23,10 @@ public static class DbInitializer
         var permRolesManage = await EnsurePermissionAsync(context, PermissionNames.RolesManage, "إنشاء الأدوار وتعديلها ومنح صلاحياتها");
         var permUsersView = await EnsurePermissionAsync(context, PermissionNames.UsersView, "عرض المستخدمين");
         var permUsersManage = await EnsurePermissionAsync(context, PermissionNames.UsersManage, "إسناد الأدوار للمستخدمين وسحبها");
+        var permOrgsView = await EnsurePermissionAsync(context, PermissionNames.OrganizationsView, "عرض المنظّمات");
+        var permProjectsView = await EnsurePermissionAsync(context, PermissionNames.ProjectsView, "عرض المشاريع");
+        var permTasksView = await EnsurePermissionAsync(context, PermissionNames.TasksView, "عرض المهام");
+        var permTeamsView = await EnsurePermissionAsync(context, PermissionNames.TeamsView, "عرض الفرق");
 
         // 2. الأدوار (Roles)
         var adminRole = await EnsureRoleAsync(context, "Admin", "مدير النظام بكامل الصلاحيات", isSystem: true);
@@ -35,6 +39,10 @@ public static class DbInitializer
         await EnsureRolePermissionAsync(context, adminRole.Id, permRolesManage.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permUsersView.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permUsersManage.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permOrgsView.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permProjectsView.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permTasksView.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permTeamsView.Id);
         await EnsureRolePermissionAsync(context, memberRole.Id, permRolesView.Id);
         await EnsureRolePermissionAsync(context, memberRole.Id, permUsersView.Id);
 

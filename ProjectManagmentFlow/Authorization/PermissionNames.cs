@@ -11,4 +11,9 @@ public static class PermissionNames
 
     public const string UsersView = "users:view";
     public const string UsersManage = "users:manage";
+
+    public const string OrganizationsView = "organizations:view";
+    public const string ProjectsView      = "projects:view";
+    public const string TasksView         = "tasks:view";
+    public const string TeamsView         = "teams:view";
 }

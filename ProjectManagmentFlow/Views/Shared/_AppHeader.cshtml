@@ -1,0 +1,143 @@
+@model AppHeaderViewModel
+@{
+    var showSidebar = ViewData["ShowSidebar"] as bool? ?? false;
+    var returnUrl = $"{Context.Request.PathBase}{Context.Request.Path}{Context.Request.QueryString}";
+    // زرّ تبديل اللغة يعرض اللغة الأخرى بلغتها هي — قرار عرض لا يترجَم.
+    var switchDir = DisplayCulture.IsArabic ? "ltr" : "rtl";
+    var switchLabel = DisplayCulture.IsArabic ? "English" : "العربية";
+}
+
+<header class="dga-app-header @Model.CssClass">
+    <nav class="navbar navbar-expand-lg dga-app-header__navbar" aria-label="@Model.NavigationLabel">
+        <div class="dga-layout-container">
+            <a class="dga-brand" href="@Model.Brand.HomeUrl">
+                @if (!string.IsNullOrWhiteSpace(Model.Brand.LogoUrl))
+                {
+                    <img class="dga-brand__logo" src="@Url.Content(Model.Brand.LogoUrl)" alt="@Model.Brand.LogoAlt" />
+                }
+                else
+                {
+                    <span class="dga-brand__fallback" aria-hidden="true">@Model.Brand.FallbackMark</span>
+                }
+                <span class="dga-brand__text">
+                    <span class="dga-brand__name">@Model.Brand.Name</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Brand.Descriptor))
+                    {
+                        <span class="dga-brand__descriptor">@Model.Brand.Descriptor</span>
+                    }
+                </span>
+            </a>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ContextBadge))
+            {
+                <span class="dga-header-context-badge">@Model.ContextBadge</span>
+            }
+
+            <div class="dga-app-header__mobile-actions">
+                @if (showSidebar)
+                {
+                    <button class="dga-header-icon-button d-lg-none" type="button"
+                            data-bs-toggle="offcanvas" data-bs-target="#@Model.SidebarTargetId"
+                            aria-controls="@Model.SidebarTargetId" aria-label="@Model.SidebarMenuLabel">
+                        <span class="dga-menu-icon" aria-hidden="true"></span>
+                    </button>
+                }
+                <button class="navbar-toggler dga-header-icon-button" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#dga-primary-navigation"
+                        aria-controls="dga-primary-navigation" aria-expanded="false"
+                        aria-label="@Model.MobileMenuLabel">
+                    <span class="navbar-toggler-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse dga-app-header__collapse" id="dga-primary-navigation">
+                <ul class="navbar-nav dga-primary-nav">
+                    @foreach (var item in Model.Items)
+                    {
+                        var isCurrent = item.IsActive || string.Equals(
+                            Context.Request.Path.Value?.TrimEnd('/'),
+                            item.Url.TrimEnd('/'),
+                            StringComparison.OrdinalIgnoreCase);
+
+                        <li class="nav-item">
+                            @if (item.IsDisabled)
+                            {
+                                <span class="nav-link dga-primary-nav__link disabled" aria-disabled="true">
+                                    @item.Label
+                                    @if (!string.IsNullOrWhiteSpace(item.Badge))
+                                    {
+                                        <span class="badge rounded-pill text-bg-secondary">@item.Badge</span>
+                                    }
+                                </span>
+                            }
+                            else
+                            {
+                                <a class="nav-link dga-primary-nav__link @(isCurrent ? "active" : null)"
+                                   href="@item.Url" aria-current="@(isCurrent ? "page" : null)">
+                                    @item.Label
+                                    @if (!string.IsNullOrWhiteSpace(item.Badge))
+                                    {
+                                        <span class="badge rounded-pill text-bg-secondary">@item.Badge</span>
+                                    }
+                                </a>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                <div class="dga-app-header__actions">
+                    @if (!string.IsNullOrWhiteSpace(Model.Brand.SecondaryLogoUrl))
+                    {
+                        <img class="dga-brand__secondary-logo" src="@Url.Content(Model.Brand.SecondaryLogoUrl)"
+                             alt="@Model.Brand.SecondaryLogoAlt" />
+                    }
+                    @if (Model.User is not null)
+                    {
+                        <a class="dga-header-user" href="@Model.User.ProfileUrl">
+                            @if (!string.IsNullOrWhiteSpace(Model.User.AvatarUrl))
+                            {
+                                <img class="dga-header-user__avatar" src="@Url.Content(Model.User.AvatarUrl)" alt="" />
+                            }
+                            else
+                            {
+                                <span class="dga-header-user__avatar dga-header-user__avatar--fallback" aria-hidden="true">
+                                    @Model.User.Initials
+                                </span>
+                            }
+                            <span class="dga-header-user__text">
+                                <span class="dga-header-user__name">@Model.User.DisplayName</span>
+                                @if (!string.IsNullOrWhiteSpace(Model.User.Role))
+                                {
+                                    <span class="dga-header-user__role">@Model.User.Role</span>
+                                }
+                            </span>
+                        </a>
+                    }
+
+                    @if (Model.LanguageSwitch is not null)
+                    {
+                        <form asp-controller="@Model.LanguageSwitch.Controller" asp-action="@Model.LanguageSwitch.Action"
+                              method="post" class="dga-language-switch">
+                            <input type="hidden" name="culture" value="@Model.LanguageSwitch.TargetCulture" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button class="btn btn-sm btn-outline-primary" type="submit"
+                                    lang="@Model.LanguageSwitch.LanguageCode" dir="@switchDir">
+                                @switchLabel
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.User is not null)
+                    {
+                        <form asp-controller="Account" asp-action="Logout"
+                              method="post" class="dga-language-switch">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                @T["Nav_Logout"]
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
