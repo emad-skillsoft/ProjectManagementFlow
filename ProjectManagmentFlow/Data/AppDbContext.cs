@@ -13,6 +13,14 @@ public class AppDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrgMember> OrgMembers => Set<OrgMember>();
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectUpdate> ProjectUpdates => Set<ProjectUpdate>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
+    public DbSet<ProjectTask> Tasks => Set<ProjectTask>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -71,6 +79,23 @@ public class AppDbContext : DbContext
                 .WithMany(p => p.RolePermissions)
                 .HasForeignKey(rp => rp.PermissionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Project>(entity =>
+        {
+            entity.Property(p => p.Code).HasMaxLength(64);
+            entity.HasIndex(p => p.Code).IsUnique();
+        });
+
+        modelBuilder.Entity<ProjectTask>(entity =>
+        {
+            entity.Property(t => t.EstimateHours).HasPrecision(9, 2);
+            entity.Property(t => t.Position).HasPrecision(18, 6);
+
+            entity.HasOne(t => t.ParentTask)
+                .WithMany(t => t.Subtasks)
+                .HasForeignKey(t => t.ParentTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
