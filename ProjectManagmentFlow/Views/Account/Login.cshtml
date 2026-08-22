@@ -1,64 +1,58 @@
 @model AccountLoginViewModel
+@inject IWebHostEnvironment HostEnvironment
 
 @{
     ViewData["Title"] = T["Login_Title"].Value;
-    // لا قشرة في صفحة الدخول: لا شريط جانبيّ لزائر غير مُصادَق.
-    Layout = null;
+    // القشرة تبقى كما في المرجع: ترويسة وتذييل، بلا تنقّل ولا شريط جانبيّ.
+    // يضبطها AccountController عبر LayoutBuilder.BuildForSignIn().
 }
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — @T["App_BrandName"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-</head>
-<body>
-    <section class="ds-auth-shell">
-        <div class="ds-auth-card">
-            <header class="mb-4">
-                <h1>@(T["App_SignIn"])</h1>
-                <p>@(T["App_MetaDescription"])</p>
-            </header>
 
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<section class="ds-auth-shell">
+    <div class="ds-auth-card">
+        <header class="mb-4">
+            <h1>@(T["Login_Title"])</h1>
+            <p>@(T["Login_Subtitle"])</p>
+        </header>
 
-            <form asp-action="Login" method="post" class="d-flex flex-column gap-3">
-                <input type="hidden" asp-for="ReturnUrl" />
+        @* لا يُرسم الصندوق إلّا عند وجود خطأ فعليّ — وإلّا ظهر تنبيه فارغ. *@
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="alert alert-danger ds-alert-accent" role="alert">
+                <span aria-hidden="true">⚠</span>
+                <div asp-validation-summary="ModelOnly" class="d-inline"></div>
+            </div>
+        }
 
-                <div>
-                    <label class="form-label fw-semibold" asp-for="Email"></label>
-                    <input class="form-control" asp-for="Email" type="email" dir="ltr"
-                           autocomplete="username" />
-                    <span asp-validation-for="Email" class="text-danger small"></span>
-                </div>
+        <form asp-action="Login" method="post" class="d-flex flex-column gap-3">
+            <input type="hidden" asp-for="ReturnUrl" />
 
-                <div>
-                    <label class="form-label fw-semibold" asp-for="Password"></label>
-                    <input class="form-control" asp-for="Password" type="password"
-                           autocomplete="current-password" />
-                    <span asp-validation-for="Password" class="text-danger small"></span>
-                </div>
+            <div>
+                <label class="form-label fw-semibold" asp-for="Email"></label>
+                <input class="form-control" asp-for="Email" type="email" dir="ltr"
+                       autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
 
-                <button class="btn btn-primary w-100" type="submit">@(T["Login_Submit"])</button>
-            </form>
+            <div>
+                <label class="form-label fw-semibold" asp-for="Password"></label>
+                <input class="form-control" asp-for="Password" type="password"
+                       autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
 
+            <button class="btn btn-primary w-100" type="submit">@(T["Login_Submit"])</button>
+        </form>
+
+        @* بيانات الحسابات التجريبيّة للتطوير وحده — لا تُطبع في بيئة نشر. *@
+        @if (HostEnvironment.IsDevelopment())
+        {
             <p class="text-body-secondary small mt-3 mb-0" lang="en" dir="ltr">
                 admin@example.com · user@example.com
             </p>
-        </div>
-    </section>
+        }
+    </div>
+</section>
 
-    <!-- لا قشرة هنا: سكربت التحقق يُحمَّل مباشرةً (الصفحة بلا Layout). -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
-</body>
-</html>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

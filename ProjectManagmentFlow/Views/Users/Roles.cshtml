@@ -4,8 +4,10 @@
     ViewData["Title"] = T["UserRoles_Title", Model.DisplayName].Value;
 }
 
-<div>
-    <h3 class="mb-1">@ViewData["Title"]</h3>
+<section class="ds-permissions-page">
+    <header class="ds-permissions-page__header">
+        <h1>@ViewData["Title"]</h1>
+    </header>
     <p class="text-muted" dir="ltr">@Model.Email</p>
 
     <partial name="_StatusMessage" />
@@ -36,4 +38,4 @@
         }
         <a class="btn btn-link" asp-action="Index">@T["Common_Back"]</a>
     </form>
-</div>
+</section>

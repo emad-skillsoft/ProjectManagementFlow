@@ -1,0 +1,108 @@
+@model PermissionMatrixViewModel
+@functions {
+    private static string StateClass(PermissionCellState state) => state switch
+    {
+        PermissionCellState.Granted => "is-granted",
+        PermissionCellState.Mixed => "is-mixed",
+        PermissionCellState.NotApplicable => "is-na",
+        _ => "is-denied"
+    };
+
+    private static string AriaChecked(PermissionCellState state) => state switch
+    {
+        PermissionCellState.Granted => "true",
+        PermissionCellState.Mixed => "mixed",
+        _ => "false"
+    };
+
+    private static string StateMark(PermissionCellState state) => state switch
+    {
+        PermissionCellState.Granted => "✓",
+        PermissionCellState.Mixed => "−",
+        PermissionCellState.NotApplicable => "—",
+        _ => string.Empty
+    };
+}
+
+<section class="ds-permission-matrix" aria-label="@Model.Label" data-permission-matrix
+         style="--ds-permission-grid: minmax(12.5rem, 1fr) 4rem repeat(@Model.Operations.Count, 5.75rem);">
+    <header class="ds-permission-matrix__toolbar">
+        <div>
+            <h2 class="ds-permission-matrix__title">@Model.Title</h2>
+            <p class="ds-permission-matrix__subtitle">@Model.Subtitle</p>
+        </div>
+    </header>
+
+    <div class="ds-permission-matrix__scroll" tabindex="0" role="region" aria-label="@Model.Label">
+        <div role="table" aria-label="@Model.Label">
+            <div class="ds-permission-head" role="row">
+                <div class="ds-permission-head__service" role="columnheader">@Model.ServiceLabel</div>
+                <div class="ds-permission-head__all" role="columnheader">@Model.RowToggleLabel</div>
+                @foreach (var operation in Model.Operations)
+                {
+                    <div class="ds-permission-head__operation" role="columnheader">
+                        <span>@operation.Label</span>
+                        <button class="ds-permission-toggle @StateClass(operation.State)" type="button"
+                                role="checkbox" aria-checked="@AriaChecked(operation.State)"
+                                aria-label="@operation.ToggleLabel" title="@operation.ToggleLabel"
+                                disabled="@Model.IsReadOnly"
+                                data-permission-column="@operation.Key">@StateMark(operation.State)</button>
+                    </div>
+                }
+            </div>
+
+            @foreach (var row in Model.Rows)
+            {
+                <div class="ds-permission-row" role="row" data-permission-row>
+                    <div class="ds-permission-service" role="rowheader">
+                        <span class="ds-permission-service__name">@row.Name</span>
+                        @if (!string.IsNullOrWhiteSpace(row.Tag))
+                        {
+                            <span class="ds-permission-service__tag">@row.Tag</span>
+                        }
+                        <bdi class="ds-permission-service__count" dir="ltr">@row.GrantedCountLabel</bdi>
+                    </div>
+                    <div class="ds-permission-cell-wrap" role="cell">
+                        <button class="ds-permission-toggle @StateClass(row.State)" type="button"
+                                role="checkbox" aria-checked="@AriaChecked(row.State)"
+                                aria-label="@row.ToggleLabel" title="@row.ToggleLabel"
+                                disabled="@Model.IsReadOnly"
+                                data-permission-row-toggle>@StateMark(row.State)</button>
+                    </div>
+                    @foreach (var cell in row.Cells)
+                    {
+                        <div class="ds-permission-cell-wrap" role="cell">
+                            @if (cell.State == PermissionCellState.NotApplicable)
+                            {
+                                <span class="ds-permission-cell--na" aria-label="@Model.NotApplicableLabel"
+                                      title="@Model.NotApplicableHint" aria-disabled="true">—</span>
+                            }
+                            else
+                            {
+                                <button class="ds-permission-cell @StateClass(cell.State)" type="button"
+                                        role="checkbox" aria-checked="@AriaChecked(cell.State)"
+                                        aria-label="@cell.Label" disabled="@Model.IsReadOnly"
+                                        data-permission-cell
+                                        data-operation="@cell.OperationKey">@StateMark(cell.State)</button>
+                                <input class="visually-hidden" type="checkbox" name="SelectedPermissionIds"
+                                       tabindex="-1" aria-hidden="true" data-permission-input
+                                       value="@cell.PermissionId"
+                                       checked="@(cell.State == PermissionCellState.Granted)" />
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <footer class="ds-permission-legend" aria-label="@Model.Label">
+        @foreach (var item in Model.Legend)
+        {
+            <span class="ds-permission-legend__item">
+                <span class="ds-permission-legend__swatch @StateClass(item.State)" aria-hidden="true">@StateMark(item.State)</span>
+                @item.Label
+            </span>
+        }
+    </footer>
+</section>

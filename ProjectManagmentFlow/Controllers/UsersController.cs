@@ -50,7 +50,7 @@ public class UsersController : Controller
     }
 
     [HttpGet]
-    [RequirePermission(PermissionNames.UsersManage)]
+    [RequirePermission(PermissionNames.UsersEdit)]
     public async Task<IActionResult> Roles(Guid id, CancellationToken cancellationToken)
     {
         var user = await _userQueries.GetByIdAsync(id, cancellationToken);
@@ -61,7 +61,7 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequirePermission(PermissionNames.UsersManage)]
+    [RequirePermission(PermissionNames.UsersEdit)]
     public async Task<IActionResult> Roles(Guid id, UserRolesViewModel viewModel, CancellationToken cancellationToken)
     {
         var user = await _userQueries.GetByIdAsync(id, cancellationToken);

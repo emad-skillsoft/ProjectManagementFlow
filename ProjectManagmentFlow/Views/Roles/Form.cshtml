@@ -4,8 +4,10 @@
     ViewData["Title"] = Model.IsNew ? T["RoleForm_New"].Value : T["RoleForm_Edit", Model.Name].Value;
 }
 
-<div class="container" style="max-width: 560px;">
-    <h3 class="mb-4">@ViewData["Title"]</h3>
+<section class="ds-permissions-page" style="max-inline-size: 40rem;">
+    <header class="ds-permissions-page__header">
+        <h1>@ViewData["Title"]</h1>
+    </header>
 
     <form asp-action="@(Model.IsNew ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -40,7 +42,7 @@
         <button type="submit" class="btn btn-primary">@T["Common_Save"]</button>
         <a class="btn btn-link" asp-action="Index">@T["Common_Cancel"]</a>
     </form>
-</div>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

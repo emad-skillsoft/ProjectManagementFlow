@@ -1,0 +1,107 @@
+.dga-app-sidebar .offcanvas-body.dga-app-sidebar__body {
+    display: block;
+    padding: 1.25rem 1rem;
+}
+
+.ds-preset-role-card__readonly.is-builtin {
+    background: var(--ds-success-bg);
+    border-color: var(--ds-success-border);
+    color: var(--ds-success-text);
+}
+
+.ds-preset-role-card__readonly.is-custom {
+    background: var(--ds-warning-bg);
+    border-color: var(--ds-warning-border);
+    color: var(--ds-warning-accent);
+}
+
+.ds-preset-role-card.is-selected {
+    background: var(--ds-green-50);
+    border-color: var(--ds-green-600);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-green-300) 40%, transparent);
+}
+
+.ds-preset-role-card {
+    position: relative;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ds-preset-role-card h2 a,
+.ds-preset-role-card h2 a:hover {
+    text-decoration: none;
+}
+
+.ds-preset-role-card:hover:not(.is-selected) {
+    border-color: var(--ds-green-300);
+    box-shadow: var(--ds-shadow-sm);
+}
+
+.ds-preset-role-card footer .btn,
+.ds-preset-role-card footer form {
+    position: relative;
+    z-index: 2;
+}
+
+.ds-preset-role-card__state {
+    background: var(--ds-green-600);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.1875rem 0.625rem;
+    white-space: nowrap;
+}
+
+.dga-header-user-menu .dga-header-user {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    text-align: start;
+}
+
+.dga-header-user__caret {
+    border-block-start: 0.3rem solid currentColor;
+    border-inline: 0.3rem solid transparent;
+    color: var(--ds-neutral-500);
+    flex: none;
+    height: 0;
+    width: 0;
+}
+
+.dga-header-user-menu .dropdown-menu {
+    --bs-dropdown-min-width: 11rem;
+    border-color: var(--ds-neutral-200);
+    box-shadow: var(--ds-shadow-md);
+}
+
+.dga-header-user-menu .dropdown-item {
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding-block: 0.4375rem;
+    width: 100%;
+}
+
+.ds-permissions-page__header h1 {
+    font-size: 1.125rem;
+    line-height: 1.45;
+}
+
+h2.ds-permissions-page__subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.ds-preset-role-card h2 {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+h2.ds-permission-matrix__title {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+h2.ds-role-panel__title {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}

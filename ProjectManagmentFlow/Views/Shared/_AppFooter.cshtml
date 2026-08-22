@@ -2,38 +2,6 @@
 
 <footer class="dga-app-footer">
     <div class="dga-layout-container dga-app-footer__inner">
-        <nav class="dga-app-footer__links" aria-label="@Model.NavigationLabel">
-            @foreach (var link in Model.Links)
-            {
-                <a href="@link.Url" target="@(link.IsExternal ? "_blank" : null)"
-                   rel="@(link.IsExternal ? "noopener noreferrer" : null)">
-                    @link.Label
-                    @if (link.IsExternal)
-                    {
-                        <span class="visually-hidden">
-                            @T["Common_OpensInNewWindow"]
-                        </span>
-                        <span aria-hidden="true">↗</span>
-                    }
-                </a>
-            }
-            @if (!string.IsNullOrWhiteSpace(Model.GovernmentPortal.Url))
-            {
-                <a class="dga-app-footer__government-link" href="@Model.GovernmentPortal.Url"
-                   target="@(Model.GovernmentPortal.IsExternal ? "_blank" : null)"
-                   rel="@(Model.GovernmentPortal.IsExternal ? "noopener noreferrer" : null)">
-                    @Model.GovernmentPortal.Label
-                    @if (Model.GovernmentPortal.IsExternal)
-                    {
-                        <span class="visually-hidden">
-                            @T["Common_OpensInNewWindow"]
-                        </span>
-                        <span aria-hidden="true">↗</span>
-                    }
-                </a>
-            }
-        </nav>
-
         <div class="dga-app-footer__meta">
             @if (!string.IsNullOrWhiteSpace(Model.LastUpdatedText))
             {

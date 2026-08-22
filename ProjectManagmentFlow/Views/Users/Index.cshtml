@@ -3,11 +3,13 @@
 
 @{
     ViewData["Title"] = T["Users_Title"].Value;
-    var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.UsersManage);
+    var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.UsersEdit);
 }
 
-<div>
-    <h3 class="mb-3">@T["Users_Title"]</h3>
+<section class="ds-permissions-page">
+    <header class="ds-permissions-page__header">
+        <h1>@T["Users_Title"]</h1>
+    </header>
 
     <partial name="_StatusMessage" />
 
@@ -56,7 +58,7 @@
                         }
                     </td>
                     <td class="text-muted small" dir="ltr">
-                        @(user.LastSeenAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")
+                        @(user.LastSeenAt?.Local() ?? "—")
                     </td>
                     <td class="text-end">
                         @if (canManage)
@@ -68,4 +70,4 @@
             }
         </tbody>
     </table>
-</div>
+</section>

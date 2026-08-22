@@ -1,60 +1,90 @@
-@model List<RoleListItemViewModel>
+@model PermissionsPageViewModel
 @inject ProjectManagmentFlow.Services.Permissions.IPermissionService PermissionService
 
 @{
-    ViewData["Title"] = T["Roles_Title"].Value;
-    var canManage = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesManage);
+    ViewData["Title"] = T["Perm_PageTitle"].Value;
+    var canCreate = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesCreate);
+    var canEdit   = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesEdit);
+    var canDelete = PermissionService.HasPermission(ProjectManagmentFlow.Authorization.PermissionNames.RolesDelete);
 }
 
-<div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">@T["Roles_Title"]</h3>
-        @if (canManage)
-        {
-            <a class="btn btn-primary" asp-action="Create">@T["Roles_New"]</a>
-        }
-    </div>
+<section class="ds-permissions-page">
+    <header class="ds-permissions-page__header">
+        <h1>@T["Perm_PageTitle"]</h1>
+        <p>@T["Perm_PageDescription"]</p>
+    </header>
 
     <partial name="_StatusMessage" />
 
-    @if (Model.Count == 0)
-    {
-        <p class="text-muted">@T["Roles_Empty"]</p>
-    }
-    else
-    {
-        <table class="table table-striped align-middle">
-            <thead>
-                <tr>
-                    <th>@T["Roles_Name"]</th>
-                    <th>@T["Roles_Description"]</th>
-                    <th>@T["Roles_PermissionCount"]</th>
-                    <th>@T["Roles_MemberCount"]</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var role in Model)
+    <section aria-label="@T["Roles_Defined"]">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="ds-permissions-page__subtitle mb-0">@T["Roles_Defined"]</h2>
+            @if (canCreate)
+            {
+                <a class="btn btn-primary" asp-action="Create">@T["Roles_New"]</a>
+            }
+        </div>
+
+        @if (Model.Roles.Count == 0)
+        {
+            <p class="text-muted">@T["Roles_Empty"]</p>
+        }
+        else
+        {
+            <div class="ds-preset-role-grid">
+                @foreach (var role in Model.Roles)
                 {
-                    <tr>
-                        <td class="fw-semibold">@role.Name</td>
-                        <td class="text-muted">@role.Description</td>
-                        <td>@role.PermissionCount</td>
-                        <td>@role.MemberCount</td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Permissions" asp-route-id="@role.Id">@T["Roles_Permissions"]</a>
-                            @if (canManage && !role.IsSystem)
-                            {
-                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@role.Id">@T["Common_Edit"]</a>
-                                <form asp-action="Delete" asp-route-id="@role.Id" method="post" class="d-inline"
-                                      onsubmit="return confirm('@T["Roles_DeleteConfirm", role.Name]');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">@T["Common_Delete"]</button>
-                                </form>
-                            }
-                        </td>
-                    </tr>
+                    <article class="ds-preset-role-card @(role.IsSelected ? "is-selected" : null)">
+                        <header>
+                            <h2>
+                                <a class="stretched-link" asp-action="Index" asp-route-roleId="@role.Id">@role.Name</a>
+                            </h2>
+                            <span class="ds-preset-role-card__readonly @(role.IsSystem ? "is-builtin" : "is-custom")">
+                                @(role.IsSystem ? T["Roles_BuiltIn"] : T["Roles_Custom"])
+                            </span>
+                        </header>
+                        <p>@role.Description</p>
+                        <footer>
+                            <span>@T["Roles_HoldersLabel", role.MemberCount] · @T["Roles_GrantsLabel", role.PermissionCount]</span>
+                            <span class="d-flex gap-2">
+                                @if (role.IsSelected)
+                                {
+                                    <span class="ds-preset-role-card__state">@T["Roles_EditNow"]</span>
+                                }
+                                @if (canEdit && !role.IsSystem)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-action="Edit" asp-route-id="@role.Id">@T["Roles_Rename"]</a>
+                                }
+                                @if (canDelete && !role.IsSystem)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@role.Id" method="post"
+                                          onsubmit="return confirm('@T["Roles_DeleteConfirm", role.Name]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@T["Common_Delete"]</button>
+                                    </form>
+                                }
+                            </span>
+                        </footer>
+                    </article>
                 }
-            </tbody>
-        </table>
+            </div>
+        }
+    </section>
+
+    @if (Model.Selected is { } selected)
+    {
+        @if (!canEdit)
+        {
+            <div class="alert alert-secondary ds-alert-accent mt-3" role="status">
+                <span aria-hidden="true">ⓘ</span><span>@T["RolePerms_ReadOnly"]</span>
+            </div>
+        }
+
+        <form asp-action="Permissions" asp-route-id="@selected.RoleId" method="post" data-permission-form>
+            <div class="ds-permission-workspace">
+                <partial name="_PermissionMatrix" model="selected.Matrix" />
+                <partial name="_RolePanel" model="selected.Panel" />
+            </div>
+        </form>
     }
-</div>
+</section>

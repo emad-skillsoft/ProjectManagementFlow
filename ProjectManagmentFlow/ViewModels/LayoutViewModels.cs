@@ -38,9 +38,7 @@ public sealed class LayoutViewModel
                     Name = text["App_BrandName"],
                     Descriptor = text["App_MetaDescription"],
                     HomeUrl = "/",
-                    // المشروع الهدف لا يملك ملفّ الشعار؛ الثيم يسقط تلقائيًا
-                    // إلى العلامت النصّيّة FallbackMark.
-                    LogoUrl = null,
+                    LogoUrl = "~/images/public-security-logo.svg",
                     LogoAlt = text["App_BrandLogoAlt"],
                     FallbackMark = text["App_BrandMark"]
                 },
@@ -215,44 +213,14 @@ public sealed class SidebarSectionViewModel
 
 public sealed class AppFooterViewModel
 {
-    public string NavigationLabel { get; set; } = "Footer navigation";
-
-    public IReadOnlyList<FooterLinkViewModel> Links { get; set; } = [];
-
-    public FooterLinkViewModel GovernmentPortal { get; set; } = new();
-
     public string LastUpdatedText { get; set; } = string.Empty;
 
     public string CopyrightText { get; set; } = string.Empty;
 
     public static AppFooterViewModel CreateDefault(IStringLocalizer text) => new()
     {
-        NavigationLabel = text["Footer_Navigation"],
-        Links =
-        [
-            new() { Label = text["Footer_Privacy"], Url = "/privacy" },
-            new() { Label = text["Footer_Terms"], Url = "/terms" },
-            new() { Label = text["Footer_Contact"], Url = "/contact" },
-            new() { Label = text["Footer_Faq"], Url = "/faq" },
-            new() { Label = text["Footer_Sitemap"], Url = "/sitemap" },
-            new() { Label = text["Footer_Accessibility"], Url = "/accessibility" }
-        ],
-        GovernmentPortal = new FooterLinkViewModel
-        {
-            Label = text["Footer_UnifiedPlatform"],
-            Url = "https://my.gov.sa",
-            IsExternal = true
-        },
         LastUpdatedText = text["Footer_LastUpdated"],
         CopyrightText = text["Footer_Copyright"]
     };
 }
 
-public sealed class FooterLinkViewModel
-{
-    public string Label { get; set; } = string.Empty;
-
-    public string Url { get; set; } = "#";
-
-    public bool IsExternal { get; set; }
-}

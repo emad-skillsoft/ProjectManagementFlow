@@ -1,0 +1,37 @@
+@model RolePanelViewModel
+
+<aside class="ds-role-panel" aria-label="@Model.Label">
+    <section class="ds-role-panel__card">
+        <label class="form-label fw-semibold" for="@Model.NameInputId">@Model.NameLabel</label>
+        <input class="form-control" id="@Model.NameInputId" type="text" value="@Model.Name" readonly />
+    </section>
+
+    <section class="ds-role-panel__card">
+        <h2 class="ds-role-panel__title">@Model.PreviewTitle</h2>
+        <div class="ds-role-panel__count">
+            <strong class="ds-role-panel__count-value" data-permission-count>@Model.OperationCount</strong>
+            <span class="ds-role-panel__count-label">@Model.OperationCountLabel</span>
+        </div>
+        @if (Model.PreviewLines.Count > 0)
+        {
+            <div class="ds-role-panel__preview" data-permission-preview>
+                @foreach (var line in Model.PreviewLines)
+                {
+                    <p><strong>@line.Service</strong><span aria-hidden="true"> — </span>@line.Operations</p>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="ds-role-panel__empty" data-permission-preview>@Model.EmptyPreviewLabel</p>
+        }
+    </section>
+
+    @if (!Model.IsSaveDisabled)
+    {
+        <div class="ds-role-panel__actions">
+            <button class="btn btn-primary" type="submit">@Model.SaveLabel</button>
+            <button class="btn btn-link" type="reset" data-permission-reset>@Model.ResetLabel</button>
+        </div>
+    }
+</aside>

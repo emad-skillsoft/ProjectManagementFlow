@@ -93,28 +93,53 @@
                     }
                     @if (Model.User is not null)
                     {
-                        <a class="dga-header-user" href="@Model.User.ProfileUrl">
-                            @if (!string.IsNullOrWhiteSpace(Model.User.AvatarUrl))
-                            {
-                                <img class="dga-header-user__avatar" src="@Url.Content(Model.User.AvatarUrl)" alt="" />
-                            }
-                            else
-                            {
-                                <span class="dga-header-user__avatar dga-header-user__avatar--fallback" aria-hidden="true">
-                                    @Model.User.Initials
-                                </span>
-                            }
-                            <span class="dga-header-user__text">
-                                <span class="dga-header-user__name">@Model.User.DisplayName</span>
-                                @if (!string.IsNullOrWhiteSpace(Model.User.Role))
+                        <div class="dropdown dga-header-user-menu">
+                            <button class="dga-header-user" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @if (!string.IsNullOrWhiteSpace(Model.User.AvatarUrl))
                                 {
-                                    <span class="dga-header-user__role">@Model.User.Role</span>
+                                    <img class="dga-header-user__avatar" src="@Url.Content(Model.User.AvatarUrl)" alt="" />
                                 }
-                            </span>
-                        </a>
-                    }
+                                else
+                                {
+                                    <span class="dga-header-user__avatar dga-header-user__avatar--fallback" aria-hidden="true">
+                                        @Model.User.Initials
+                                    </span>
+                                }
+                                <span class="dga-header-user__text">
+                                    <span class="dga-header-user__name">@Model.User.DisplayName</span>
+                                    @if (!string.IsNullOrWhiteSpace(Model.User.Role))
+                                    {
+                                        <span class="dga-header-user__role">@Model.User.Role</span>
+                                    }
+                                </span>
+                                <span class="dga-header-user__caret" aria-hidden="true"></span>
+                            </button>
 
-                    @if (Model.LanguageSwitch is not null)
+                            <ul class="dropdown-menu">
+                                @if (Model.LanguageSwitch is not null)
+                                {
+                                    <li>
+                                        <form asp-controller="@Model.LanguageSwitch.Controller" asp-action="@Model.LanguageSwitch.Action"
+                                              method="post">
+                                            <input type="hidden" name="culture" value="@Model.LanguageSwitch.TargetCulture" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button class="dropdown-item" type="submit"
+                                                    lang="@Model.LanguageSwitch.LanguageCode" dir="@switchDir">
+                                                @switchLabel
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button class="dropdown-item" type="submit">@T["Nav_Logout"]</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else if (Model.LanguageSwitch is not null)
                     {
                         <form asp-controller="@Model.LanguageSwitch.Controller" asp-action="@Model.LanguageSwitch.Action"
                               method="post" class="dga-language-switch">
@@ -123,16 +148,6 @@
                             <button class="btn btn-sm btn-outline-primary" type="submit"
                                     lang="@Model.LanguageSwitch.LanguageCode" dir="@switchDir">
                                 @switchLabel
-                            </button>
-                        </form>
-                    }
-
-                    @if (Model.User is not null)
-                    {
-                        <form asp-controller="Account" asp-action="Logout"
-                              method="post" class="dga-language-switch">
-                            <button class="btn btn-sm btn-outline-secondary" type="submit">
-                                @T["Nav_Logout"]
                             </button>
                         </form>
                     }

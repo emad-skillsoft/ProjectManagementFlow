@@ -7,10 +7,12 @@ namespace ProjectManagmentFlow.Authorization;
 public static class PermissionNames
 {
     public const string RolesView = "roles:view";
-    public const string RolesManage = "roles:manage";
+    public const string RolesCreate = "roles:create";
+    public const string RolesEdit = "roles:edit";
+    public const string RolesDelete = "roles:delete";
 
     public const string UsersView = "users:view";
-    public const string UsersManage = "users:manage";
+    public const string UsersEdit = "users:edit";
 
     public const string OrganizationsView = "organizations:view";
     public const string ProjectsView      = "projects:view";

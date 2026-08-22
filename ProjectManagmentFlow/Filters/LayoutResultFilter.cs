@@ -8,22 +8,20 @@ namespace ProjectManagmentFlow.Filters;
 /// يحقن نموذج القشرة (LayoutViewModel) في ViewData لكل نتيجة عرض،
 /// فيبني كل المتحكمات قشرتها تلقائيًا من LayoutBuilder — صفر تكرار في الإجراءات.
 /// </summary>
-public sealed class LayoutResultFilter : IResultFilter
+public sealed class LayoutResultFilter : IAsyncResultFilter
 {
     private readonly LayoutBuilder _builder;
 
     public LayoutResultFilter(LayoutBuilder builder) => _builder = builder;
 
-    public void OnResultExecuting(ResultExecutingContext context)
+    public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {
         if (context.Controller is Controller controller && context.Result is ViewResult)
         {
-            controller.ViewData["LayoutViewModel"] ??= _builder.Build();
+            controller.ViewData["LayoutViewModel"] ??=
+                await _builder.BuildAsync(context.HttpContext.RequestAborted);
         }
-    }
 
-    public void OnResultExecuted(ResultExecutedContext context)
-    {
-        // لا حاجة للمعالجة بعد التنفيذ.
+        await next();
     }
 }

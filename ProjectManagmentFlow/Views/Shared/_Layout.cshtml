@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="dga-app-page @(appLayout.Sidebar.IsVisible ? "dga-app-page--with-sidebar" : null)">
@@ -38,9 +39,9 @@
 
     <partial name="_AppHeader" model="appLayout.Header" />
 
-    @if (appLayout.Breadcrumb is not null)
+    @if ((ViewData["Breadcrumb"] as AppBreadcrumbViewModel ?? appLayout.Breadcrumb) is { } breadcrumb)
     {
-        <partial name="_AppBreadcrumb" model="appLayout.Breadcrumb" />
+        <partial name="_AppBreadcrumb" model="breadcrumb" />
     }
 
     <div class="dga-app-shell">

@@ -43,10 +43,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Organizations/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvT3JnYW5pemF0aW9ucy9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -61,10 +57,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Roles/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvSW5kZXguY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Roles/Permissions.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvUGVybWlzc2lvbnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/AccessDenied.cshtml]
@@ -89,6 +81,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_AppSidebar.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19BcHBTaWRlYmFyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_PermissionMatrix.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19QZXJtaXNzaW9uTWF0cml4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_RolePanel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Sb2xlUGFuZWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_StatusMessage.cshtml]
@@ -122,7 +126,3 @@ build_metadata.AdditionalFiles.CssScope =
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
-
-[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_Layout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = b-grxfyb43fk

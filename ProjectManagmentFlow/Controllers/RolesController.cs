@@ -14,43 +14,59 @@ public class RolesController : Controller
     private readonly IRoleQueryService _roleQueries;
     private readonly IRoleCommandService _roleCommands;
     private readonly IPermissionCatalog _permissionCatalog;
+    private readonly IPermissionService _permissions;
     private readonly IStringLocalizer<Messages> _text;
 
     public RolesController(
         IRoleQueryService roleQueries,
         IRoleCommandService roleCommands,
         IPermissionCatalog permissionCatalog,
+        IPermissionService permissions,
         IStringLocalizer<Messages> text)
     {
         _roleQueries = roleQueries;
         _roleCommands = roleCommands;
         _permissionCatalog = permissionCatalog;
+        _permissions = permissions;
         _text = text;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(Guid? roleId, CancellationToken cancellationToken)
     {
         var summaries = await _roleQueries.GetSummariesAsync(cancellationToken);
+        var selectedId = summaries.Any(s => s.Id == roleId) ? roleId!.Value : summaries.FirstOrDefault()?.Id;
 
-        return View(summaries.Select(s => new RoleListItemViewModel
+        var cards = summaries.Select(s => new RoleListItemViewModel
         {
             Id = s.Id,
             Name = DisplayNames.Role(_text, s.Name, s.NameEn, s.IsSystem),
             Description = DisplayNames.RoleDescription(_text, s.Name, s.Description, s.DescriptionEn, s.IsSystem),
             IsSystem = s.IsSystem,
             PermissionCount = s.PermissionCount,
-            MemberCount = s.MemberCount
-        }).ToList());
+            MemberCount = s.MemberCount,
+            IsSelected = s.Id == selectedId
+        }).ToList();
+
+        SetBreadcrumb();
+
+        return View(new PermissionsPageViewModel
+        {
+            Roles = cards,
+            Selected = selectedId is null ? null : await BuildRoleMatrixAsync(selectedId.Value, cancellationToken)
+        });
     }
 
     [HttpGet]
-    [RequirePermission(PermissionNames.RolesManage)]
+    public IActionResult Permissions(Guid id) => RedirectToAction(nameof(Index), new { roleId = id });
+
+    [HttpGet]
+    [RequirePermission(PermissionNames.RolesCreate)]
     public IActionResult Create() => View("Form", new RoleFormViewModel());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequirePermission(PermissionNames.RolesManage)]
+    [RequirePermission(PermissionNames.RolesCreate)]
     public async Task<IActionResult> Create(RoleFormViewModel viewModel, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View("Form", viewModel);
@@ -71,7 +87,7 @@ public class RolesController : Controller
     }
 
     [HttpGet]
-    [RequirePermission(PermissionNames.RolesManage)]
+    [RequirePermission(PermissionNames.RolesEdit)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var role = await _roleQueries.GetByIdAsync(id, cancellationToken);
@@ -89,7 +105,7 @@ public class RolesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequirePermission(PermissionNames.RolesManage)]
+    [RequirePermission(PermissionNames.RolesEdit)]
     public async Task<IActionResult> Edit(Guid id, RoleFormViewModel viewModel, CancellationToken cancellationToken)
     {
         viewModel.Id = id;
@@ -109,7 +125,7 @@ public class RolesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequirePermission(PermissionNames.RolesManage)]
+    [RequirePermission(PermissionNames.RolesDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var deleted = await _roleCommands.DeleteAsync(id, cancellationToken);
@@ -117,11 +133,10 @@ public class RolesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Permissions(Guid id, CancellationToken cancellationToken)
+    private async Task<RolePermissionsViewModel?> BuildRoleMatrixAsync(Guid id, CancellationToken cancellationToken)
     {
         var role = await _roleQueries.GetByIdAsync(id, cancellationToken);
-        if (role is null) return NotFound();
+        if (role is null) return null;
 
         var granted = (await _roleQueries.GetPermissionsByRoleAsync(id, cancellationToken))
             .Select(p => p.Id)
@@ -129,23 +144,44 @@ public class RolesController : Controller
 
         var all = await _permissionCatalog.GetAllAsync(cancellationToken);
 
-        return View(new RolePermissionsViewModel
+        var roleName = DisplayNames.Role(_text, role.Name, role.NameEn, role.IsSystem);
+        var choices = all.Select(p => new PermissionChoice
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Description = DisplayNames.Permission(_text, p.Name, p.Description),
+            IsGranted = granted.Contains(p.Id)
+        }).ToList();
+
+        var canEdit = _permissions.HasPermission(PermissionNames.RolesEdit);
+        var holderCount = (await _roleQueries.GetSummariesAsync(cancellationToken))
+            .FirstOrDefault(summary => summary.Id == id)?.MemberCount ?? 0;
+
+        var (matrix, panel) = PermissionMatrixBuilder.Build(_text, roleName, holderCount, choices, canEdit);
+
+        return new RolePermissionsViewModel
         {
             RoleId = role.Id,
-            RoleName = DisplayNames.Role(_text, role.Name, role.NameEn, role.IsSystem),
-            Permissions = all.Select(p => new PermissionChoice
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = DisplayNames.Permission(_text, p.Name, p.Description),
-                IsGranted = granted.Contains(p.Id)
-            }).ToList()
-        });
+            RoleName = roleName,
+            Permissions = choices,
+            Matrix = matrix,
+            Panel = panel
+        };
     }
+
+    private void SetBreadcrumb() => ViewData["Breadcrumb"] = new AppBreadcrumbViewModel
+    {
+        Label = _text["Perm_PageTitle"],
+        Items =
+        [
+            new() { Label = _text["Dashboard_Title"], Url = "/Dashboard" },
+            new() { Label = _text["Perm_PageTitle"], IsCurrent = true }
+        ]
+    };
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequirePermission(PermissionNames.RolesManage)]
+    [RequirePermission(PermissionNames.RolesEdit)]
     public async Task<IActionResult> Permissions(Guid id, RolePermissionsViewModel viewModel, CancellationToken cancellationToken)
     {
         var role = await _roleQueries.GetByIdAsync(id, cancellationToken);
@@ -162,7 +198,7 @@ public class RolesController : Controller
         if (toGrant.Count > 0 && !await _roleCommands.AssignPermissionsAsync(id, toGrant, cancellationToken))
         {
             TempData["Status"] = _text["Status_GrantFailed"].Value;
-            return RedirectToAction(nameof(Permissions), new { id });
+            return RedirectToAction(nameof(Index), new { roleId = id });
         }
 
         if (toRevoke.Count > 0)
@@ -174,6 +210,6 @@ public class RolesController : Controller
             ? _text["Status_NoChange"].Value
             : _text["Status_RolePermissionsUpdated"].Value;
 
-        return RedirectToAction(nameof(Permissions), new { id });
+        return RedirectToAction(nameof(Index), new { roleId = id });
     }
 }

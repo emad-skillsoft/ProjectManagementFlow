@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Identity;
 using ProjectManagmentFlow.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,11 @@ public static class DbInitializer
 
         // 1. الصلاحيات (Permissions)
         var permRolesView = await EnsurePermissionAsync(context, PermissionNames.RolesView, "عرض الأدوار وصلاحياتها");
-        var permRolesManage = await EnsurePermissionAsync(context, PermissionNames.RolesManage, "إنشاء الأدوار وتعديلها ومنح صلاحياتها");
+        var permRolesCreate = await EnsurePermissionAsync(context, PermissionNames.RolesCreate, "إنشاء أدوار جديدة");
+        var permRolesEdit = await EnsurePermissionAsync(context, PermissionNames.RolesEdit, "تعديل الأدوار ومنح صلاحياتها وسحبها");
+        var permRolesDelete = await EnsurePermissionAsync(context, PermissionNames.RolesDelete, "حذف الأدوار");
         var permUsersView = await EnsurePermissionAsync(context, PermissionNames.UsersView, "عرض المستخدمين");
-        var permUsersManage = await EnsurePermissionAsync(context, PermissionNames.UsersManage, "إسناد الأدوار للمستخدمين وسحبها");
+        var permUsersEdit = await EnsurePermissionAsync(context, PermissionNames.UsersEdit, "إسناد الأدوار للمستخدمين وسحبها");
         var permOrgsView = await EnsurePermissionAsync(context, PermissionNames.OrganizationsView, "عرض المنظّمات");
         var permProjectsView = await EnsurePermissionAsync(context, PermissionNames.ProjectsView, "عرض المشاريع");
         var permTasksView = await EnsurePermissionAsync(context, PermissionNames.TasksView, "عرض المهام");
@@ -36,9 +39,11 @@ public static class DbInitializer
 
         // 3. ربط الصلاحيات بالأدوار (RolePermissions)
         await EnsureRolePermissionAsync(context, adminRole.Id, permRolesView.Id);
-        await EnsureRolePermissionAsync(context, adminRole.Id, permRolesManage.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permRolesCreate.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permRolesEdit.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permRolesDelete.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permUsersView.Id);
-        await EnsureRolePermissionAsync(context, adminRole.Id, permUsersManage.Id);
+        await EnsureRolePermissionAsync(context, adminRole.Id, permUsersEdit.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permOrgsView.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permProjectsView.Id);
         await EnsureRolePermissionAsync(context, adminRole.Id, permTasksView.Id);
@@ -55,6 +60,34 @@ public static class DbInitializer
         // 5. ربط المستخدمين بالأدوار (UserRoles)
         await EnsureUserRoleAsync(context, adminUser.Id, adminRole.Id);
         await EnsureUserRoleAsync(context, regularUser.Id, memberRole.Id);
+
+        await context.SaveChangesAsync();
+
+        await PruneUnknownPermissionsAsync(context);
+    }
+
+    private static async Task PruneUnknownPermissionsAsync(AppDbContext context)
+    {
+        var known = typeof(PermissionNames)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+            .Select(field => (string)field.GetRawConstantValue()!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var obsolete = await context.Permissions
+            .Where(permission => !known.Contains(permission.Name))
+            .ToListAsync();
+
+        if (obsolete.Count == 0) return;
+
+        var obsoleteIds = obsolete.Select(permission => permission.Id).ToList();
+
+        var assignments = await context.RolePermissions
+            .Where(link => obsoleteIds.Contains(link.PermissionId))
+            .ToListAsync();
+
+        context.RolePermissions.RemoveRange(assignments);
+        context.Permissions.RemoveRange(obsolete);
 
         await context.SaveChangesAsync();
     }

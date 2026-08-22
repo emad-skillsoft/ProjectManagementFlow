@@ -1,94 +1,124 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.Authorization;
 using ProjectManagmentFlow.Services.Permissions;
+using ProjectManagmentFlow.Services.Users;
 using ProjectManagmentFlow.ViewModels;
 
 namespace ProjectManagmentFlow.Services.Layout;
 
-/// <summary>
-/// يبني نموذج القشرة لكل طلب: يملأ ترويسة المستخدم من ادّعاءات المصادقة،
-/// وشريطًا جانبيًّا يعرض فقط ما يملكه المستخدم صلاحية رؤيته (لا قائمة ثابتة).
-/// يُحقن في المتحكّمات عبر LayoutResultFilter فلا يُكتب هذا الكود في كلّ إجراء.
-/// </summary>
 public class LayoutBuilder
 {
     private readonly IPermissionService _permissions;
     private readonly IStringLocalizer<Messages> _text;
     private readonly IHttpContextAccessor _http;
+    private readonly IUserRoleQueryService _userRoles;
 
     public LayoutBuilder(
         IPermissionService permissions,
         IStringLocalizer<Messages> text,
-        IHttpContextAccessor http)
+        IHttpContextAccessor http,
+        IUserRoleQueryService userRoles)
     {
         _permissions = permissions;
         _text = text;
         _http = http;
+        _userRoles = userRoles;
     }
 
-    public LayoutViewModel Build()
+    public async Task<LayoutViewModel> BuildAsync(CancellationToken cancellationToken = default)
     {
         var model = LayoutViewModel.CreateDefault(_text);
         var user = _http.HttpContext?.User;
 
         if (user?.Identity?.IsAuthenticated != true)
         {
-            // زائر غير مُصادَق: لا اسم مستخدم في الترويسة ولا شريط جانبيّ —
-            // التنقّل الداخليّ حقّ للمُصادَقين وحدهم.
             return model;
         }
 
-        // مستخدم الترويسة — من ادّعاءات المصادقة (اسم العرض = FullName/Email).
+        var displayName = user.Identity.Name ?? string.Empty;
         model.Header.User = new HeaderUserViewModel
         {
-            DisplayName = user.Identity.Name ?? string.Empty,
+            DisplayName = displayName,
+            Initials    = InitialOf(displayName),
+            Role        = await ResolveRoleAsync(user, cancellationToken),
             ProfileUrl  = "#"
         };
 
         var path = _http.HttpContext?.Request?.Path.Value ?? string.Empty;
-        model.Sidebar.Sections = BuildSidebarSections(path);
-        model.Sidebar.IsVisible = model.Sidebar.Sections.Any(s => s.Items.Count > 0);
+        model.Header.Items = BuildPrimaryNavigation(path);
 
         return model;
     }
 
-    private List<SidebarSectionViewModel> BuildSidebarSections(string path)
+    public LayoutViewModel BuildForSignIn()
     {
-        var items = new List<NavigationItemViewModel>();
+        var model = LayoutViewModel.CreateDefault(_text);
 
-        // «الرئيسيّة» ليست خلف صلاحية — المصادقة وحدها تكفي لدخولها،
-        // فتظهر أعلى الشريط لكلّ مُصادَق.
+        model.MetaDescription   = _text["App_SignIn"];
+        model.Header.Items      = [];
+        model.Header.User       = null;
+        model.Sidebar.IsVisible = false;
+
+        return model;
+    }
+
+    private async Task<string?> ResolveRoleAsync(ClaimsPrincipal user, CancellationToken cancellationToken)
+    {
+        var identifier = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(identifier) || !Guid.TryParse(identifier, out var userId))
+        {
+            return null;
+        }
+
+        var roles = await _userRoles.GetRolesByUserAsync(userId, cancellationToken);
+        var role = roles.FirstOrDefault(r => !r.IsSystem) ?? roles.FirstOrDefault();
+        return role is null
+            ? null
+            : DisplayNames.Role(_text, role.Name, role.NameEn, role.IsSystem);
+    }
+
+    private IReadOnlyList<NavigationItemViewModel> BuildPrimaryNavigation(string path)
+    {
+        var items = new List<NavigationItemViewModel>
+        {
+            new()
+            {
+                Label    = _text["Dashboard_Title"],
+                Url      = "/Dashboard",
+                IsActive = IsCurrent("/Dashboard", path)
+            }
+        };
+
+        Add(items, PermissionNames.OrganizationsView, "Nav_Organizations", "/Organizations", path);
+        Add(items, PermissionNames.ProjectsView,      "Nav_Projects",      "/Projects",      path);
+        Add(items, PermissionNames.TasksView,         "Nav_MyTasks",       "/Tasks",         path);
+        Add(items, PermissionNames.TeamsView,         "Nav_Teams",         "/Teams",         path);
+        Add(items, PermissionNames.RolesView,         "Nav_Permissions",   "/Roles",         path);
+        Add(items, PermissionNames.UsersView,         "Nav_Users",         "/Users",         path);
+
+        return items;
+    }
+
+    private void Add(List<NavigationItemViewModel> items, string permission, string labelKey, string url, string path)
+    {
+        if (!_permissions.HasPermission(permission)) return;
+
         items.Add(new NavigationItemViewModel
         {
-            Label    = _text["Dashboard_Title"],
-            Url      = "/Dashboard",
-            IsActive = IsCurrent("/Dashboard", path)
+            Label    = _text[labelKey],
+            Url      = url,
+            IsActive = IsCurrent(url, path)
         });
-
-        // عناصر أخرى تظهر فقط لمن يملك صلاحية العرض.
-        Add(PermissionNames.OrganizationsView, "Nav_Organizations", "/Organizations");
-        Add(PermissionNames.ProjectsView,      "Nav_Projects",      "/Projects");
-        Add(PermissionNames.TasksView,         "Nav_MyTasks",       "/Tasks");
-        Add(PermissionNames.TeamsView,         "Nav_Teams",         "/Teams");
-        Add(PermissionNames.RolesView,         "Nav_Roles",         "/Roles");
-        Add(PermissionNames.UsersView,         "Nav_Users",         "/Users");
-
-        return [ new SidebarSectionViewModel { Items = items } ];
-
-        void Add(string permission, string labelKey, string url)
-        {
-            if (!_permissions.HasPermission(permission)) return;
-
-            items.Add(new NavigationItemViewModel
-            {
-                Label    = _text[labelKey],
-                Url      = url,
-                IsActive = IsCurrent(url, path)
-            });
-        }
     }
 
     private static bool IsCurrent(string url, string path) =>
         string.Equals(path.TrimEnd('/'), url.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+
+    private static string InitialOf(string displayName)
+    {
+        var trimmed = displayName.TrimStart();
+        return trimmed.Length == 0 ? string.Empty : trimmed[..1].ToUpperInvariant();
+    }
 }
