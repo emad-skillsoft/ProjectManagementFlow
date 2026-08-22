@@ -81,6 +81,53 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<Organization>(entity =>
+        {
+            entity.Property(o => o.Name).HasMaxLength(200).IsRequired();
+            entity.Property(o => o.Description).HasMaxLength(1000);
+
+            entity.Property(o => o.Path).HasMaxLength(Organization.PathLength).IsRequired();
+
+           
+            entity.HasIndex(o => o.Path);
+            entity.HasIndex(o => new { o.RootId, o.Depth });
+            entity.HasIndex(o => o.ParentId);
+
+            entity.HasOne(o => o.Parent)
+                .WithMany(o => o.Children)
+                .HasForeignKey(o => o.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Organization_Depth",
+                    $"[Depth] BETWEEN 0 AND {Organization.MaxDepth}");
+
+                t.HasCheckConstraint("CK_Organization_Root",
+                    "([ParentId] IS NULL AND [RootId] = [Id] AND [Depth] = 0) OR ([ParentId] IS NOT NULL AND [Depth] > 0)");
+            });
+        });
+
+        modelBuilder.Entity<OrgMember>(entity =>
+        {
+            entity.Property(m => m.Role).HasMaxLength(32).IsRequired();
+            entity.Property(m => m.Status).HasMaxLength(32).IsRequired();
+
+            entity.HasIndex(m => new { m.OrganizationId, m.UserId }).IsUnique();
+            entity.HasIndex(m => new { m.UserId, m.Status });
+
+            entity.HasOne(m => m.Organization)
+                .WithMany(o => o.Members)
+                .HasForeignKey(m => m.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_OrgMember_Status", "[Status] IN ('pending', 'active')");
+                t.HasCheckConstraint("CK_OrgMember_Role", "[Role] IN ('owner', 'admin', 'member')");
+            });
+        });
+
         modelBuilder.Entity<Project>(entity =>
         {
             entity.Property(p => p.Code).HasMaxLength(64);

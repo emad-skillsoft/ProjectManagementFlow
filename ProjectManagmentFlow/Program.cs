@@ -19,6 +19,7 @@ using ProjectManagmentFlow.Services.Layout;
 using ProjectManagmentFlow.Services.Roles;
 using ProjectManagmentFlow.Services.Security;
 using ProjectManagmentFlow.Services.Users;
+using ProjectManagmentFlow.Services.Organizations;
 using ProjectManagmentFlow.Services.Permissions;
 
 //Added By Emad El Faramawi
@@ -99,6 +100,12 @@ builder.Services.AddScoped<IUserRoleQueryService, UserRoleQueryService>();
 builder.Services.AddScoped<IUserRoleCommandService, UserRoleCommandService>();
 builder.Services.AddScoped<IPermissionCatalog, PermissionCatalog>();
 builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+
+// organizations
+builder.Services.AddScoped<IOrganizationQueryService, OrganizationQueryService>();
+builder.Services.AddScoped<IOrganizationCommandService, OrganizationCommandService>();
+builder.Services.AddScoped<IOrganizationMemberQueryService, OrganizationMemberQueryService>();
+builder.Services.AddScoped<IOrganizationMemberCommandService, OrganizationMemberCommandService>();
 
 // يعبّن القشرة (ترويسة/شريط جانبي/تذييل) لكل عرض حسب صلاحيّات المستخدم —
 // يُحقنها LayoutResultFilter في ViewData.
