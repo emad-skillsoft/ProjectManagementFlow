@@ -1,0 +1,13 @@
+@model ProjectManagmentFlow.ViewModels.UnitScopeSwitchViewModel
+
+<div class="ds-scope-switch">
+    <span class="ds-scope-switch__hint">@Model.Hint</span>
+    <div class="ds-segmented" role="radiogroup" aria-label="@Model.Label">
+        @foreach (var option in Model.Options)
+        {
+            var id = $"{Model.Name}-{option.Value}";
+            <input class="btn-check" id="@id" type="radio" name="@Model.Name" value="@option.Value" checked="@option.IsSelected" />
+            <label class="ds-segmented-button" for="@id">@option.Label</label>
+        }
+    </div>
+</div>

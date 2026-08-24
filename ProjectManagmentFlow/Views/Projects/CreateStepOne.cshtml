@@ -1,0 +1,206 @@
+@model ProjectCreateStepOneViewModel
+@{
+    ViewData["Title"] = T["ProjectCreate_Title"].Value;
+    var ownerError = Model.FieldErrors.GetValueOrDefault(nameof(ProjectCreateInput.OwnerId));
+    var startDateError = Model.FieldErrors.GetValueOrDefault(nameof(ProjectCreateInput.StartDate));
+    var dueDateError = Model.FieldErrors.GetValueOrDefault(nameof(ProjectCreateInput.DueDate));
+}
+
+<section class="container py-3 py-lg-4" data-project-create>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-9">
+            <header class="text-center mb-3">
+                <h1 class="fs-3 mb-0">@T["ProjectCreate_Title"]</h1>
+            </header>
+
+            <ol class="ds-stepper mb-4" aria-label="@T["ProjectCreate_StepsLabel"]">
+                <li class="ds-step is-current" aria-current="step">
+                    <span class="ds-step-marker">1</span>
+                    <span><strong>@T["ProjectCreate_ProjectData"]</strong><small>@T["ProjectCreate_Step1Of2"]</small></span>
+                </li>
+                <li class="ds-step-connector" aria-hidden="true"></li>
+                <li class="ds-step">
+                    <span class="ds-step-marker">2</span>
+                    <span><strong>@T["ProjectCreate_TeamMembers"]</strong><small>@T["ProjectCreate_Step2Of2"]</small></span>
+                </li>
+            </ol>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Error))
+            {
+                <div class="alert alert-danger ds-alert-accent" role="alert">
+                    <span aria-hidden="true">⚠</span><span>@Model.Error</span>
+                </div>
+            }
+
+            <form method="post" action="/Projects/Create/Details" class="d-flex flex-column gap-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="UnitId" value="@Model.Input.UnitId" />
+
+                <div class="ds-surface">
+                    <fieldset class="mb-4">
+                        <legend class="form-label fw-semibold mb-1">
+                            @T["ProjectCreate_OwningUnit"] <span class="text-danger" aria-hidden="true">*</span>
+                        </legend>
+                        <p class="form-text mt-0">@T["ProjectCreate_UnitScopeHint"]</p>
+
+                        <div class="row g-3 align-items-start">
+                            <div class="col-12 col-lg-6">
+                                <div class="ds-unit-picker" aria-label="@T["ProjectCreate_AvailableUnits"]">
+                                    @foreach (var unit in Model.Units)
+                                    {
+                                        <a class="ds-unit-picker__row @(unit.IsSelected ? "is-selected" : null)"
+                                           style="--ds-unit-depth:@unit.Depth"
+                                           aria-current="@(unit.IsSelected ? "true" : null)"
+                                           href="@unit.Href">
+                                            <span class="ds-unit-picker__name">@unit.Name</span>
+                                            <span class="ds-type-badge @(unit.IsRoot ? "ds-type-badge--root" : "ds-type-badge--sub")">@unit.TypeLabel</span>
+                                            @if (unit.IsSelected)
+                                            {
+                                                <span class="ds-unit-picker__reason">@T["ProjectCreate_Selected"]</span>
+                                            }
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="ds-unit-picker__summary">
+                                    <strong>@T["ProjectCreate_SelectedPath"]</strong>
+                                    <span>@Model.UnitPathLabel</span>
+                                    <small>@T["ProjectCreate_SelectedPathHint"]</small>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-name">
+                                @T["ProjectCreate_Name"] <span class="text-danger" aria-hidden="true">*</span>
+                            </label>
+                            <input class="form-control" id="project-name" name="Name" type="text"
+                                   maxlength="200" required value="@Model.Input.Name"
+                                   placeholder="@T["ProjectCreate_NamePlaceholder"]" data-project-name />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-owner">
+                                @T["ProjectCreate_Owner"] <span class="text-danger" aria-hidden="true">*</span>
+                            </label>
+                            <select class="form-select @(ownerError is null ? null : "is-invalid")"
+                                    id="project-owner" name="OwnerId" required disabled="@(Model.Owners.Count == 0)"
+                                    aria-invalid="@(ownerError is null ? null : "true")">
+                                <option value="">@T["ProjectCreate_ChooseOwner"]</option>
+                                @foreach (var person in Model.Owners)
+                                {
+                                    <option value="@person.Id" selected="@(person.Id == Model.Input.OwnerId)">
+                                        @person.Name — @person.OrganizationName
+                                    </option>
+                                }
+                            </select>
+                            @if (ownerError is not null)
+                            {
+                                <div class="invalid-feedback d-block">@ownerError</div>
+                            }
+                            <div class="form-text">@T["ProjectCreate_OwnerHint"]</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-code">@T["ProjectCreate_Code"]</label>
+                            <input class="form-control ds-bidi-isolate" id="project-code" type="text" dir="ltr"
+                                   readonly value="@Model.CodePreview" />
+                            <div class="form-text">@T["ProjectCreate_CodeHint"]</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="team-name">@T["ProjectCreate_Team"]</label>
+                            <input class="form-control" id="team-name" type="text" readonly
+                                   value="@Model.TeamName" data-team-name
+                                   data-team-template="@T["ProjectCreate_TeamName", "{name}"]" />
+                            <div class="form-text">@T["ProjectCreate_TeamHint"]</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-status">@T["ProjectCreate_Status"]</label>
+                            <select class="form-select" id="project-status" name="Status">
+                                @foreach (var option in Model.Statuses)
+                                {
+                                    <option value="@option.Value" selected="@option.IsSelected">@option.Label</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <fieldset>
+                                <legend class="form-label fw-semibold">@T["ProjectCreate_Priority"]</legend>
+                                <div class="ds-segmented ds-segmented--compact" role="radiogroup" aria-label="@T["ProjectCreate_Priority"]">
+                                    @foreach (var option in Model.Priorities)
+                                    {
+                                        <input class="btn-check" id="priority-@option.Value" type="radio"
+                                               name="Priority" value="@option.Value" checked="@option.IsSelected" />
+                                        <label class="ds-segmented-button" for="priority-@option.Value">@option.Label</label>
+                                    }
+                                </div>
+                            </fieldset>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-start">@T["ProjectCreate_StartDate"]</label>
+                            <input class="form-control @(startDateError is null ? null : "is-invalid")"
+                                   id="project-start" name="StartDate" type="date"
+                                   value="@Model.Input.StartDate.ToIso()"
+                                   aria-invalid="@(startDateError is null ? null : "true")" />
+                            @if (startDateError is not null)
+                            {
+                                <div class="invalid-feedback d-block">@startDateError</div>
+                            }
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="project-due">@T["ProjectCreate_DueDate"]</label>
+                            <input class="form-control @(dueDateError is null ? null : "is-invalid")"
+                                   id="project-due" name="DueDate" type="date"
+                                   value="@Model.Input.DueDate.ToIso()"
+                                   aria-invalid="@(dueDateError is null ? null : "true")" />
+                            @if (dueDateError is not null)
+                            {
+                                <div class="invalid-feedback d-block">@dueDateError</div>
+                            }
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="project-description">@T["ProjectCreate_Description"]</label>
+                            <textarea class="form-control" id="project-description" name="Description"
+                                      maxlength="2000" rows="4" placeholder="@T["ProjectCreate_DescriptionPlaceholder"]">@Model.Input.Description</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <a class="btn btn-link" href="/Projects?unit=@Model.Input.UnitId">@T["Common_Cancel"]</a>
+                    <button class="btn btn-primary" type="submit" disabled="@(Model.Owners.Count == 0)">
+                        @T["ProjectCreate_NextMembers"]
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const name = document.querySelector("[data-project-name]");
+            const team = document.querySelector("[data-team-name]");
+            if (!name || !team) return;
+
+            const template = team.dataset.teamTemplate || "{name}";
+            const update = () => {
+                const value = name.value.trim() || "—";
+                team.value = template.replace("{name}", value);
+            };
+
+            name.addEventListener("input", update);
+            update();
+        })();
+    </script>
+}

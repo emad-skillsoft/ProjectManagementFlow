@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectManagmentFlow.Data;
 
@@ -11,9 +12,11 @@ using ProjectManagmentFlow.Data;
 namespace ProjectManagmentFlow.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260822171548_ProjectFields")]
+    partial class ProjectFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,54 +24,6 @@ namespace ProjectManagmentFlow.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ProjectManagmentFlow.Models.ActivityLog", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<Guid?>("ActorId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("EntityId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<Guid?>("OrganizationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Payload")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<Guid?>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId", "CreatedAt")
-                        .IsDescending(false, true);
-
-                    b.HasIndex("ProjectId", "CreatedAt")
-                        .IsDescending(false, true);
-
-                    b.ToTable("ActivityLog");
-                });
 
             modelBuilder.Entity("ProjectManagmentFlow.Models.OrgMember", b =>
                 {
@@ -305,17 +260,13 @@ namespace ProjectManagmentFlow.Migrations
                         .HasColumnType("decimal(18,6)");
 
                     b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -331,18 +282,9 @@ namespace ProjectManagmentFlow.Migrations
 
                     b.HasIndex("ParentTaskId");
 
-                    b.HasIndex("AssigneeId", "Status");
-
-                    b.HasIndex("ProjectId", "Status");
-
                     b.HasIndex("ProjectId", "ParentTaskId", "CompletedAt");
 
-                    b.ToTable("Tasks", t =>
-                        {
-                            t.HasCheckConstraint("CK_Task_Priority", "[Priority] IN ('low', 'normal', 'high', 'urgent')");
-
-                            t.HasCheckConstraint("CK_Task_Status", "[Status] IN ('todo', 'in_progress', 'in_review', 'done', 'cancelled')");
-                        });
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("ProjectManagmentFlow.Models.ProjectUpdate", b =>
@@ -452,8 +394,7 @@ namespace ProjectManagmentFlow.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uniqueidentifier");
@@ -463,9 +404,7 @@ namespace ProjectManagmentFlow.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId")
-                        .IsUnique()
-                        .HasFilter("[ProjectId] IS NOT NULL");
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Teams");
                 });
@@ -483,9 +422,7 @@ namespace ProjectManagmentFlow.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("TeamId")
                         .HasColumnType("uniqueidentifier");
@@ -495,22 +432,9 @@ namespace ProjectManagmentFlow.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TeamId", "UserId")
-                        .IsUnique()
-                        .HasFilter("[TeamId] IS NOT NULL AND [UserId] IS NOT NULL");
+                    b.HasIndex("TeamId");
 
-                    b.HasIndex(new[] { "TeamId" }, "UX_TeamMember_Deputy")
-                        .IsUnique()
-                        .HasFilter("[Role] = 'deputy'");
-
-                    b.HasIndex(new[] { "TeamId" }, "UX_TeamMember_Lead")
-                        .IsUnique()
-                        .HasFilter("[Role] = 'lead'");
-
-                    b.ToTable("TeamMembers", t =>
-                        {
-                            t.HasCheckConstraint("CK_TeamMember_Role", "[Role] IN ('lead', 'deputy', 'member')");
-                        });
+                    b.ToTable("TeamMembers");
                 });
 
             modelBuilder.Entity("ProjectManagmentFlow.Models.User", b =>
@@ -580,16 +504,6 @@ namespace ProjectManagmentFlow.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles");
-                });
-
-            modelBuilder.Entity("ProjectManagmentFlow.Models.ActivityLog", b =>
-                {
-                    b.HasOne("ProjectManagmentFlow.Models.Project", "Project")
-                        .WithMany("Activities")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("ProjectManagmentFlow.Models.OrgMember", b =>
@@ -719,8 +633,6 @@ namespace ProjectManagmentFlow.Migrations
 
             modelBuilder.Entity("ProjectManagmentFlow.Models.Project", b =>
                 {
-                    b.Navigation("Activities");
-
                     b.Navigation("Tasks");
 
                     b.Navigation("Teams");

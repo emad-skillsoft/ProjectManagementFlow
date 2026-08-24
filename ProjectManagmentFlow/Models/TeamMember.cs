@@ -9,7 +9,7 @@ public class TeamMember
 
     public Guid? UserId { get; set; }
 
-    public string? Role { get; set; }
+    public string Role { get; set; } = TeamMemberRoles.Member;
 
     public Guid? AddedById { get; set; }
 

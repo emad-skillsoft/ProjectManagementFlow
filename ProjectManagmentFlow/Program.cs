@@ -21,6 +21,9 @@ using ProjectManagmentFlow.Services.Security;
 using ProjectManagmentFlow.Services.Users;
 using ProjectManagmentFlow.Services.Organizations;
 using ProjectManagmentFlow.Services.Permissions;
+using ProjectManagmentFlow.Services.Projects;
+using ProjectManagmentFlow.Services.Activity;
+using ProjectManagmentFlow.Services.Teams;
 
 //Added By Emad El Faramawi
 var builder = WebApplication.CreateBuilder(args);
@@ -107,7 +110,14 @@ builder.Services.AddScoped<IOrganizationCommandService, OrganizationCommandServi
 builder.Services.AddScoped<IOrganizationMemberQueryService, OrganizationMemberQueryService>();
 builder.Services.AddScoped<IOrganizationMemberCommandService, OrganizationMemberCommandService>();
 
-// يعبّن القشرة (ترويسة/شريط جانبي/تذييل) لكل عرض حسب صلاحيّات المستخدم —
+// projects
+builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
+builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddScoped<ITeamQueryService, TeamQueryService>();
+builder.Services.AddScoped<ITeamCommandService, TeamCommandService>();
+
+
 // يُحقنها LayoutResultFilter في ViewData.
 builder.Services.AddScoped<LayoutBuilder>();
 

@@ -1,0 +1,49 @@
+@model ProjectHeaderViewModel
+
+<header class="ds-surface mb-3">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="mb-0 fs-4">@Model.Name</h1>
+                <span class="badge text-bg-light"><bdi dir="ltr">@Model.Code</bdi></span>
+                <a class="badge text-bg-light text-decoration-none" href="@Model.UnitHref">@Model.UnitName</a>
+                <partial name="_UnitTypeBadge" model="Model.UnitType" />
+                <span class="badge @Model.StatusClass">@Model.Status</span>
+                <span class="@Model.PriorityClass">@Model.Priority</span>
+            </div>
+
+            <div class="ds-page-header__meta mt-2">
+                <span><span class="text-body-secondary">@(T["ProjectDetail_Owner"]):</span> <strong>@Model.OwnerName</strong></span>
+                @if (!string.IsNullOrWhiteSpace(Model.LeadName))
+                {
+                    <span><span class="text-body-secondary">@(T["ProjectDetail_Lead"]):</span> <strong>@Model.LeadName</strong></span>
+                }
+                <span><span class="text-body-secondary">@(T["ProjectDetail_Start"]):</span> <strong><bdi dir="ltr">@Model.StartLabel</bdi></strong></span>
+                <span><span class="text-body-secondary">@(T["ProjectDetail_Due"]):</span> <strong><bdi dir="ltr">@Model.DueLabel</bdi></strong></span>
+                <span title="@(T["ProjectDetail_Team"])"><strong>@Model.TeamLabel</strong></span>
+            </div>
+        </div>
+
+        <button class="btn btn-outline-secondary" type="button" disabled
+                title="@(T["ProjectDetail_BoardNotBuilt"])">@(T["ProjectDetail_TaskBoard"])</button>
+    </div>
+</header>
+
+<nav class="nav ds-underline-tabs mb-3" aria-label="@Model.Name">
+    @foreach (var tab in Model.Tabs)
+    {
+        if (!tab.IsAvailable)
+        {
+            <span class="nav-link disabled" aria-disabled="true"
+                  title="@(T["ProjectDetail_TabNotBuilt"])">@tab.Label</span>
+        }
+        else if (tab.IsCurrent)
+        {
+            <a class="nav-link active" href="@tab.Href" aria-current="page">@tab.Label</a>
+        }
+        else
+        {
+            <a class="nav-link" href="@tab.Href">@tab.Label</a>
+        }
+    }
+</nav>

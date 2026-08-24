@@ -1,0 +1,181 @@
+@model ProjectTeamViewModel
+
+<section class="ds-permissions-page">
+    <partial name="_ProjectHeader" model="Model.Header" />
+
+    @if (!string.IsNullOrWhiteSpace(Model.Saved))
+    {
+        <div class="ds-alert-accent ds-success-bg ds-success-border p-3 mb-3" role="status">@Model.Saved</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3 mb-3" role="alert">@Model.Error</div>
+    }
+
+    <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <p class="text-body-secondary mb-0 flex-grow-1">@(T["Team_Hint"])</p>
+        @if (Model.MayEdit && Model.Candidates.Count > 0)
+        {
+            <button class="btn btn-primary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#add-member-modal">
+                <span aria-hidden="true">+</span> @(T["Team_AddMember"])
+            </button>
+        }
+        else if (Model.MayEdit)
+        {
+            <span class="text-body-secondary small">@(T["Team_NoCandidates"])</span>
+        }
+    </div>
+
+    @if (Model.LeadCards.Count > 0)
+    {
+        <div class="ds-lead-cards mb-3">
+            @foreach (var card in Model.LeadCards)
+            {
+                <div class="ds-lead-card @(card.IsPrimary ? "ds-lead-card--primary" : null)">
+                    <span class="ds-avatar ds-avatar-lg" aria-hidden="true">@card.Initials</span>
+                    <div class="ds-lead-card__identity">
+                        <strong>@card.Name</strong>
+                        <span class="text-body-secondary small d-block">@card.Department</span>
+                    </div>
+                    <span class="badge ds-badge-lead">@card.BadgeLabel</span>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.Members.Count == 0)
+    {
+        <div class="ds-empty-state"><p class="mb-0">@(T["Team_Empty"])</p></div>
+    }
+    else
+    {
+        <div class="ds-surface p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">@(T["Team_Member"])</th>
+                            <th scope="col">@(T["Team_Department"])</th>
+                            <th scope="col">@(T["Team_ProjectRole"])</th>
+                            <th scope="col">@(T["Team_OpenTasks"])</th>
+                            <th scope="col"><span class="ds-visually-clipped">@(T["Team_Actions"])</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in Model.Members)
+                        {
+                            <tr>
+                                <th scope="row">
+                                    <span class="ds-avatar ds-avatar-sm" aria-hidden="true">@member.Initials</span>
+                                    @member.Name
+                                    @if (member.IsProjectOwner)
+                                    {
+                                        <span class="badge ds-badge-lead">@(T["ProjectDetail_OwnerBadge"])</span>
+                                    }
+                                    <span class="d-block text-muted small ds-bidi-isolate">@member.Email</span>
+                                </th>
+                                <td>@member.Department</td>
+                                <td>
+                                    @if (Model.MayEdit && member.Role != TeamMemberRoles.Leader)
+                                    {
+                                        <form method="post" action="/projects/@Model.ProjectId/team/role" class="d-flex gap-2">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@member.UserId" />
+                                            <label class="ds-visually-clipped" for="role-@member.UserId">@T["Team_RoleFor", member.Name]</label>
+                                            <select class="ds-select ds-select--sm" id="role-@member.UserId" name="role">
+                                                @foreach (var role in Model.Roles)
+                                                {
+                                                    <option value="@role.Value" selected="@(role.Value == member.Role)">@role.Label</option>
+                                                }
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-primary" type="submit">@(T["Common_Save"])</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-light">@member.RoleName</span>
+                                    }
+                                </td>
+                                <td><bdi dir="ltr">@member.OpenTasks</bdi></td>
+                                <td class="text-end">
+                                    @if (Model.MayEdit && !member.IsProjectOwner)
+                                    {
+                                        <form method="post" action="/projects/@Model.ProjectId/team/remove">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@member.UserId" />
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">@(T["Team_Remove"])</button>
+                                        </form>
+                                    }
+                                    else if (member.IsProjectOwner)
+                                    {
+                                        <span class="text-body-secondary small">@(T["Team_OwnerNotRemovable"])</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="ds-alert-accent ds-info-bg ds-info-border p-3 mt-3" role="note">
+        <span aria-hidden="true">ⓘ</span> @(T["Team_AssignmentNote"])
+    </div>
+
+    @if (Model.MayEdit && Model.Candidates.Count > 0)
+    {
+        <div class="modal fade"
+             id="add-member-modal"
+             tabindex="-1"
+             aria-labelledby="add-member-modal-title"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="add-member-modal-title">@(T["Team_AddMember"])</h2>
+                        <button class="btn-close"
+                                type="button"
+                                data-bs-dismiss="modal"
+                                aria-label="@(T["Common_Close"])"></button>
+                    </div>
+                    <form method="post" action="/projects/@Model.ProjectId/team/members">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-body">
+                            <p class="text-body-secondary">@(T["Team_AddMemberHint"])</p>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="member-user">@(T["Team_Member"])</label>
+                                <select class="ds-select" id="member-user" name="userId" required>
+                                    @foreach (var person in Model.Candidates)
+                                    {
+                                        <option value="@person.Id">@person.Name — @person.OrganizationName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-semibold" for="member-role">@(T["Team_ProjectRole"])</label>
+                                <select class="ds-select" id="member-role" name="role" required>
+                                    @foreach (var role in Model.Roles)
+                                    {
+                                        <option value="@role.Value" selected="@(role.Value == TeamMemberRoles.Member)">@role.Label</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">
+                                @(T["Common_Cancel"])
+                            </button>
+                            <button class="btn btn-primary" type="submit">@(T["Team_AddAction"])</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</section>

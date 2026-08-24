@@ -47,8 +47,28 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvT3JnYW5pemF0aW9ucy9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/Activity.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvQWN0aXZpdHkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/CreateStepOne.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvQ3JlYXRlU3RlcE9uZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/CreateStepTwo.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvQ3JlYXRlU3RlcFR3by5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/Team.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvVGVhbS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Roles/Form.cshtml]
@@ -91,12 +111,28 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19QZXJtaXNzaW9uTWF0cml4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_ProjectCard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Qcm9qZWN0Q2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_ProjectHeader.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Qcm9qZWN0SGVhZGVyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_RolePanel.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Sb2xlUGFuZWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_StatusMessage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19TdGF0dXNNZXNzYWdlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_UnitScopeSwitch.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Vbml0U2NvcGVTd2l0Y2guY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_UnitTypeBadge.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19Vbml0VHlwZUJhZGdlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_ValidationScriptsPartial.cshtml]

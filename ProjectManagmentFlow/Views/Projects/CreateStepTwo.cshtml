@@ -1,0 +1,179 @@
+@model ProjectCreateStepTwoViewModel
+@{
+    ViewData["Title"] = T["ProjectCreate_Title"].Value;
+    var selectedCount = Model.Candidates.Count(person => person.IsSelected);
+}
+
+<section class="container py-3 py-lg-4" data-project-team-step>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-9">
+            <header class="text-center mb-3">
+                <h1 class="fs-3 mb-0">@T["ProjectCreate_Title"]</h1>
+            </header>
+
+            <ol class="ds-stepper mb-4" aria-label="@T["ProjectCreate_StepsLabel"]">
+                <li class="ds-step is-complete">
+                    <span class="ds-step-marker" aria-hidden="true">✓</span>
+                    <span><strong>@T["ProjectCreate_ProjectData"]</strong><small>@T["ProjectCreate_Step1Of2"]</small></span>
+                </li>
+                <li class="ds-step-connector" aria-hidden="true"></li>
+                <li class="ds-step is-current" aria-current="step">
+                    <span class="ds-step-marker">2</span>
+                    <span><strong>@T["ProjectCreate_TeamMembers"]</strong><small>@T["ProjectCreate_Step2Of2"]</small></span>
+                </li>
+            </ol>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Error))
+            {
+                <div class="alert alert-danger ds-alert-accent" role="alert">
+                    <span aria-hidden="true">⚠</span><span>@Model.Error</span>
+                </div>
+            }
+
+            <form method="post" action="/Projects/Create" class="d-flex flex-column gap-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="UnitId" value="@Model.Input.UnitId" />
+                <input type="hidden" name="Name" value="@Model.Input.Name" />
+                <input type="hidden" name="Description" value="@Model.Input.Description" />
+                <input type="hidden" name="OwnerId" value="@Model.Input.OwnerId" />
+                <input type="hidden" name="Status" value="@Model.Input.Status" />
+                <input type="hidden" name="Priority" value="@Model.Input.Priority" />
+                <input type="hidden" name="StartDate" value="@Model.Input.StartDate.ToIso()" />
+                <input type="hidden" name="DueDate" value="@Model.Input.DueDate.ToIso()" />
+
+                <div class="ds-surface">
+                    <header class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                        <div>
+                            <h2 class="fs-5 mb-1">@T["ProjectCreate_ChooseTeam", Model.TeamName]</h2>
+                            <p class="text-body-secondary mb-0">@T["ProjectCreate_TeamSelectionHint"]</p>
+                        </div>
+                        <span class="badge ds-badge-neutral" data-selected-count>
+                            @T["ProjectCreate_SelectedCount", selectedCount]
+                        </span>
+                    </header>
+
+                    <label class="visually-hidden" for="team-search">@T["ProjectCreate_SearchMembers"]</label>
+                    <input class="form-control mb-3" id="team-search" type="search"
+                           placeholder="@T["ProjectCreate_SearchMembers"]" data-member-search />
+
+                    @if (Model.FieldErrors.TryGetValue(nameof(ProjectCreateInput.SelectedMemberIds), out var membersError)
+                        || Model.FieldErrors.TryGetValue(nameof(ProjectCreateInput.MemberRoles), out membersError))
+                    {
+                        <div class="invalid-feedback d-block mb-2">@membersError</div>
+                    }
+
+                    <ul class="ds-member-list list-unstyled mb-3">
+                        @foreach (var person in Model.Candidates)
+                        {
+                            var checkId = $"member-{person.Id}";
+                            <li class="ds-member-row" data-member-row data-search-text="@($"{person.Name} {person.OrganizationName}")">
+                                @if (person.IsOwner)
+                                {
+                                    <input type="hidden" name="SelectedMemberIds" value="@person.Id" />
+                                    <input type="hidden" name="MemberRoles[@person.Id]" value="@TeamMemberRoles.Leader" />
+                                }
+                                <input class="form-check-input m-0" id="@checkId" type="checkbox"
+                                       name="SelectedMemberIds" value="@person.Id"
+                                       checked="@person.IsSelected" disabled="@person.IsOwner" data-member-check />
+                                <span class="ds-avatar ds-avatar-md" aria-hidden="true">@person.Initial</span>
+                                <label class="flex-grow-1" for="@checkId">
+                                    <strong class="d-block">@person.Name</strong>
+                                    <small class="text-body-secondary">@person.OrganizationName · @person.OrganizationRoleLabel</small>
+                                </label>
+
+                                @if (person.IsOwner)
+                                {
+                                    <span class="badge text-bg-success">@T["ProjectCreate_ProjectOwner"] · @T["TeamRole_leader"]</span>
+                                }
+                                else
+                                {
+                                    <fieldset data-member-roles disabled="@(!person.IsSelected)">
+                                        <legend class="visually-hidden">@T["ProjectCreate_MemberRole", person.Name]</legend>
+                                        <div class="ds-segmented ds-segmented--compact" role="radiogroup" aria-label="@T["ProjectCreate_MemberRole", person.Name]">
+                                            @foreach (var role in Model.Roles)
+                                            {
+                                                var roleId = $"member-{person.Id}-role-{role.Value}";
+                                                <input class="btn-check" id="@roleId" type="radio"
+                                                       name="MemberRoles[@person.Id]" value="@role.Value"
+                                                       checked="@(person.SelectedRole == role.Value)" />
+                                                <label class="ds-segmented-button" for="@roleId">@role.Label</label>
+                                            }
+                                        </div>
+                                    </fieldset>
+                                }
+                            </li>
+                        }
+                    </ul>
+
+                    @if (Model.Candidates.Count == 0)
+                    {
+                        <div class="ds-empty-state">
+                            <h2 class="fs-5">@T["ProjectCreate_NoMembers"]</h2>
+                            <p class="mb-0">@T["ProjectCreate_NoMembersHint"]</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ds-readonly-field ds-readonly-field--stacked" role="status">
+                            <strong>@T["ProjectCreate_Summary"]</strong>
+                            <span data-team-summary>@T["ProjectCreate_SummaryCount", selectedCount]</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <a class="btn btn-link" href="/Projects?unit=@Model.Input.UnitId">@T["Common_Cancel"]</a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" type="submit"
+                                formaction="/Projects/Create/Back" formmethod="post" formnovalidate>
+                            @T["Common_Back"]
+                        </button>
+                        <button class="btn btn-primary" type="submit" disabled="@(Model.Candidates.Count == 0)">
+                            @T["ProjectCreate_Submit"]
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const root = document.querySelector("[data-project-team-step]");
+            if (!root) return;
+
+            const rows = Array.from(root.querySelectorAll("[data-member-row]"));
+            const checks = Array.from(root.querySelectorAll("[data-member-check]"));
+            const count = root.querySelector("[data-selected-count]");
+            const summary = root.querySelector("[data-team-summary]");
+            const countTemplate = "@T["ProjectCreate_SelectedCount", "{count}"]";
+            const summaryTemplate = "@T["ProjectCreate_SummaryCount", "{count}"]";
+
+            const update = () => {
+                const selected = checks.filter(check => check.checked).length;
+                if (count) count.textContent = countTemplate.replace("{count}", selected);
+                if (summary) summary.textContent = summaryTemplate.replace("{count}", selected);
+            };
+
+            checks.forEach(check => {
+                check.addEventListener("change", () => {
+                    const roles = check.closest("[data-member-row]")?.querySelector("[data-member-roles]");
+                    if (roles) roles.disabled = !check.checked;
+                    update();
+                });
+            });
+
+            root.querySelector("[data-member-search]")?.addEventListener("input", event => {
+                const term = event.target.value.trim().toLocaleLowerCase();
+                rows.forEach(row => {
+                    row.hidden = term.length > 0
+                        && !row.dataset.searchText.toLocaleLowerCase().includes(term);
+                });
+            });
+
+            update();
+        })();
+    </script>
+}

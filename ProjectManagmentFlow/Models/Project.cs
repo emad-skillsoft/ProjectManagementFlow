@@ -20,6 +20,8 @@ public class Project
 
     public Guid? CreatedById { get; set; }
 
+    public DateTime? ArchivedAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
@@ -28,4 +30,5 @@ public class Project
     public ICollection<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
     public ICollection<Team> Teams { get; set; } = new List<Team>();
     public ICollection<ProjectUpdate> Updates { get; set; } = new List<ProjectUpdate>();
+    public ICollection<ActivityLog> Activities { get; set; } = new List<ActivityLog>();
 }

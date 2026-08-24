@@ -1,0 +1,5 @@
+@model ProjectManagmentFlow.ViewModels.UnitTypeBadgeViewModel
+
+<span class="ds-type-badge @(Model.IsRoot ? "ds-type-badge--root" : "ds-type-badge--sub")">
+    <span class="ds-type-badge__dot" aria-hidden="true"></span>@Model.Label
+</span>

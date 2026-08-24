@@ -42,4 +42,5 @@ public class RoleQueryService : IRoleQueryService
     public async Task<bool> HasPermissionAsync(Guid roleId, string permissionName, CancellationToken cancellationToken = default)
         => await _context.RolePermissions
             .AnyAsync(rp => rp.RoleId == roleId && rp.Permission.Name == permissionName, cancellationToken);
+
 }

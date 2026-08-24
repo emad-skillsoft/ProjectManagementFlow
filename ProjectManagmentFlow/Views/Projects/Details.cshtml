@@ -1,0 +1,115 @@
+@model ProjectDetailViewModel
+
+<section class="ds-permissions-page">
+    <partial name="_ProjectHeader" model="Model.Header" />
+
+    <div class="ds-detail-grid">
+        <div class="d-grid gap-3">
+            <section class="ds-surface" aria-label="@(T["ProjectDetail_Description"])">
+                <h2 class="ds-surface__title">@(T["ProjectDetail_Description"])</h2>
+                <p class="mb-0">
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? T["ProjectDetail_NoDescription"].Value
+                        : Model.Description)
+                </p>
+            </section>
+
+            <section class="ds-surface" aria-label="@(T["ProjectDetail_TasksByStatus"])">
+                <h2 class="ds-surface__title">@(T["ProjectDetail_TasksByStatus"])</h2>
+                <div class="ds-status-bars">
+                    @foreach (var bar in Model.StatusBars)
+                    {
+                        <div class="ds-status-bar">
+                            <span class="ds-status-bar__label">
+                                <span class="@bar.DotClass" aria-hidden="true"></span>@bar.Label
+                            </span>
+                            <span class="ds-status-bar__track">
+                                <span class="@bar.BarClass" style="--ds-bar-value:@(bar.WidthPercent)%"></span>
+                            </span>
+                            <span class="ds-status-bar__count"><bdi dir="ltr">@bar.Count</bdi></span>
+                        </div>
+                    }
+                </div>
+                <p class="form-text mt-3 mb-0">@Model.TasksSummary</p>
+            </section>
+
+            @if (Model.MayArchive)
+            {
+                <section class="ds-zone ds-zone--danger" aria-label="@(T["ProjectDetail_Archive"])">
+                    <h2 class="ds-zone__title">@(T["ProjectDetail_Archive"])</h2>
+                    <p class="ds-zone__description">@(T["ProjectDetail_ArchiveHint"])</p>
+                    <button class="btn btn-outline-danger"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#archiveProjectModal">
+                        @(T["ProjectDetail_ArchiveAction"])
+                    </button>
+                </section>
+
+                <div class="modal fade"
+                     id="archiveProjectModal"
+                     tabindex="-1"
+                     aria-labelledby="archiveProjectModalTitle"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title fs-5" id="archiveProjectModalTitle">
+                                    @T["ProjectDetail_ArchiveConfirm", Model.Header.Name]
+                                </h2>
+                                <button class="btn-close"
+                                        type="button"
+                                        data-bs-dismiss="modal"
+                                        aria-label="@(T["Common_Close"])"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-body-secondary mb-0">@(T["ProjectDetail_ArchiveConfirmBody"])</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        data-bs-dismiss="modal">
+                                    @(T["Common_Cancel"])
+                                </button>
+                                <form method="post" action="/projects/@Model.Header.Id/archive">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-danger" type="submit">
+                                        @(T["ProjectDetail_ArchiveYes"])
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <aside class="d-grid gap-3" aria-label="@(T["ProjectDetail_DataHeading"])">
+            <section class="ds-surface">
+                <h2 class="ds-surface__title">@(T["ProjectDetail_DataHeading"])</h2>
+                <dl class="ds-facts">
+                    @foreach (var fact in Model.Facts)
+                    {
+                        <div>
+                            <dt>@fact.Label</dt>
+                            <dd><bdi>@fact.Value</bdi></dd>
+                        </div>
+                    }
+                </dl>
+            </section>
+
+            <section class="ds-surface">
+                <h2 class="ds-surface__title">@(T["ProjectDetail_OwnerCard"])</h2>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="ds-avatar" aria-hidden="true">@Model.OwnerInitials</span>
+                    <span class="flex-grow-1">
+                        <strong>@Model.Header.OwnerName</strong>
+                        <span class="d-block text-body-secondary small">@Model.OwnerDepartment</span>
+                        <span class="d-block text-body-secondary small">@Model.OwnerRoleDescription</span>
+                    </span>
+                    <span class="badge text-bg-light">@(T["ProjectDetail_OwnerBadge"])</span>
+                </div>
+            </section>
+        </aside>
+    </div>
+</section>

@@ -73,6 +73,17 @@ public class OrganizationQueryService : IOrganizationQueryService
             .OrderBy(o => o.Name)
             .ToListAsync(cancellationToken);
 
+    public async Task<List<string>> GetScopePathsByUserAsync(
+        Guid userId, CancellationToken cancellationToken = default)
+    {
+        var paths = await Live()
+            .Where(o => o.Members.Any(m => m.UserId == userId && m.Status == OrgMemberStatus.Active))
+            .Select(o => o.Path)
+            .ToListAsync(cancellationToken);
+
+        return OrgScope.Outermost(paths);
+    }
+
     public Task<int> CountChildrenAsync(Guid organizationId, CancellationToken cancellationToken = default) =>
         Live().CountAsync(o => o.ParentId == organizationId, cancellationToken);
 
@@ -92,21 +103,6 @@ public class OrganizationQueryService : IOrganizationQueryService
         return self is not null
             && ancestor is not null
             && self.StartsWith(ancestor, StringComparison.Ordinal);
-    }
-
-    public async Task<List<string>> GetScopePathsByUserAsync(
-        Guid userId, CancellationToken cancellationToken = default)
-    {
-        var paths = await Live()
-            .Where(o => o.Members.Any(m => m.UserId == userId && m.Status == OrgMemberStatus.Active))
-            .Select(o => o.Path)
-            .ToListAsync(cancellationToken);
-
-        // مسارٌ يبدأ بمسارٍ آخر يقع داخله، فإبقاؤه يكرّر الشرط بلا فائدة.
-        return paths
-            .Where(path => !paths.Any(other => other.Length < path.Length
-                                            && path.StartsWith(other, StringComparison.Ordinal)))
-            .ToList();
     }
 
     public async Task<string?> GetScopePathAsync(

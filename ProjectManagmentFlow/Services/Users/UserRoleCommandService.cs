@@ -17,6 +17,34 @@ public class UserRoleCommandService : IUserRoleCommandService
         _securityStamps = securityStamps;
     }
 
+    public async Task<UserRolesChange> SetRolesAsync(
+        Guid userId,
+        IReadOnlyCollection<Guid> roleIds,
+        CancellationToken cancellationToken = default)
+    {
+        var selected = roleIds.Distinct().ToList();
+        var current = await _context.UserRoles
+            .Where(userRole => userRole.UserId == userId)
+            .Select(userRole => userRole.RoleId)
+            .ToListAsync(cancellationToken);
+
+        var toAssign = selected.Except(current).ToList();
+        var toRemove = current.Except(selected).ToList();
+
+        if (toAssign.Count > 0
+            && !await AssignRolesToUserAsync(userId, toAssign, cancellationToken))
+        {
+            return new UserRolesChange(0, 0, Failed: true);
+        }
+
+        if (toRemove.Count > 0)
+        {
+            await RemoveRolesFromUserAsync(userId, toRemove, cancellationToken);
+        }
+
+        return new UserRolesChange(toAssign.Count, toRemove.Count, Failed: false);
+    }
+
     public async Task<bool> AssignRolesToUserAsync(Guid userId, IReadOnlyCollection<Guid> roleIds, CancellationToken cancellationToken = default)
     {
         if (roleIds.Count == 0) return false;

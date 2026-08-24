@@ -73,26 +73,15 @@ public class UsersController : Controller
             return RedirectToAction(nameof(Roles), new { id });
         }
 
-        var selected = viewModel.SelectedRoleIds.Distinct().ToList();
-        var current = user.UserRoles.Select(ur => ur.RoleId).ToList();
+        var change = await _userRoleCommands.SetRolesAsync(
+            id, viewModel.SelectedRoleIds, cancellationToken);
 
-        var toAssign = selected.Except(current).ToList();
-        var toRemove = current.Except(selected).ToList();
-
-        if (toAssign.Count > 0 && !await _userRoleCommands.AssignRolesToUserAsync(id, toAssign, cancellationToken))
+        TempData["Status"] = change switch
         {
-            TempData["Status"] = _text["Status_AssignRolesFailed"].Value;
-            return RedirectToAction(nameof(Roles), new { id });
-        }
-
-        if (toRemove.Count > 0)
-        {
-            await _userRoleCommands.RemoveRolesFromUserAsync(id, toRemove, cancellationToken);
-        }
-
-        TempData["Status"] = toAssign.Count + toRemove.Count == 0
-            ? _text["Status_NoChange"].Value
-            : _text["Status_UserRolesUpdated"].Value;
+            { Failed: true } => _text["Status_AssignRolesFailed"].Value,
+            { Changed: false } => _text["Status_NoChange"].Value,
+            _ => _text["Status_UserRolesUpdated"].Value
+        };
 
         return RedirectToAction(nameof(Roles), new { id });
     }

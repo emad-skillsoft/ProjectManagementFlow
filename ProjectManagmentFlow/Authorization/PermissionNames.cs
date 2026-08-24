@@ -15,7 +15,12 @@ public static class PermissionNames
     public const string UsersEdit = "users:edit";
 
     public const string OrganizationsView = "organizations:view";
-    public const string ProjectsView      = "projects:view";
-    public const string TasksView         = "tasks:view";
-    public const string TeamsView         = "teams:view";
+
+    public const string ProjectsView   = "projects:view";
+    public const string ProjectsCreate = "projects:create";
+    public const string ProjectsEdit   = "projects:edit";
+    public const string ProjectsDelete = "projects:delete";
+
+    public const string TasksView = "tasks:view";
+    public const string TeamsView = "teams:view";
 }

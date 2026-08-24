@@ -1,0 +1,31 @@
+@model ProjectActivityViewModel
+
+<section class="ds-permissions-page">
+    <partial name="_ProjectHeader" model="Model.Header" />
+
+    <section class="ds-surface" aria-label="@(T["Activity_Title"])">
+        <h2 class="ds-surface__title">@(T["Activity_Title"])</h2>
+        @if (Model.Items.Count == 0)
+        {
+            <div class="ds-empty-state"><p class="mb-0">@(T["Activity_Empty"])</p></div>
+        }
+        else
+        {
+            <ol class="ds-timeline">
+                @foreach (var item in Model.Items)
+                {
+                    <li class="ds-timeline-item">
+                        <span class="ds-timeline-rail" aria-hidden="true">
+                            <span class="@item.ToneClass"></span>
+                            <span class="ds-timeline-connector"></span>
+                        </span>
+                        <div class="ds-timeline-body">
+                            <p class="ds-timeline-title">@item.Title</p>
+                            <time class="ds-timeline-time" datetime="@item.TimeIso">@item.TimeLabel</time>
+                        </div>
+                    </li>
+                }
+            </ol>
+        }
+    </section>
+</section>
