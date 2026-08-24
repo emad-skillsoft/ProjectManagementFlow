@@ -13,6 +13,7 @@ public sealed record ProjectCard(
     Guid Id,
     string Code,
     string Name,
+    string? Description,
     string Status,
     string Priority,
     Guid? OrganizationId,

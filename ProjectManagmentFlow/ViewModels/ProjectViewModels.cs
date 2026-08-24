@@ -40,6 +40,7 @@ public class ProjectCardViewModel
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public string StatusLabel { get; set; } = string.Empty;
     public string StatusClass { get; set; } = string.Empty;
     public string StatusBadgeClass { get; set; } = string.Empty;
@@ -51,7 +52,9 @@ public class ProjectCardViewModel
     public string OwnerName { get; set; } = string.Empty;
     public string OwnerInitial { get; set; } = string.Empty;
     public string DueLabel { get; set; } = string.Empty;
+    public bool IsOverdue { get; set; }
     public string ProgressLabel { get; set; } = string.Empty;
+    public bool HasTasks { get; set; }
     public int Percent { get; set; }
     public string Href { get; set; } = string.Empty;
 }

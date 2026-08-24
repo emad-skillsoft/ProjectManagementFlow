@@ -198,6 +198,9 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ProjectTask>(entity =>
         {
+            entity.Property(t => t.Code).HasMaxLength(16).IsRequired();
+            entity.Property(t => t.Title).HasMaxLength(200).IsRequired();
+            entity.Property(t => t.Description).HasMaxLength(4000);
             entity.Property(t => t.Status).HasMaxLength(32).IsRequired();
             entity.Property(t => t.Priority).HasMaxLength(32).IsRequired();
             entity.Property(t => t.EstimateHours).HasPrecision(9, 2);
@@ -211,6 +214,8 @@ public class AppDbContext : DbContext
             // عدّ بطاقة المشروع (جذريّة مكتملة/كلّ الجذريّة) بلا مسحٍ كامل للجدول.
             entity.HasIndex(t => new { t.ProjectId, t.ParentTaskId, t.CompletedAt });
             entity.HasIndex(t => new { t.ProjectId, t.Status });
+            entity.HasIndex(t => new { t.ProjectId, t.Code }).IsUnique();
+            entity.HasIndex(t => new { t.ProjectId, t.Status, t.Position });
             entity.HasIndex(t => new { t.AssigneeId, t.Status });
 
             entity.ToTable(t =>

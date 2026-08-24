@@ -1,0 +1,68 @@
+@model ProjectBoardViewModel
+
+<div class="modal fade" id="new-task-modal" tabindex="-1" aria-labelledby="new-task-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered ds-modal--task">
+        <div class="modal-content">
+            <form method="post" action="/projects/@Model.ProjectId/board/tasks">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="new-task-title">@T["KanbanColumn_AddTask"]</h2>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="@T["Common_Close"]"></button>
+                </div>
+                <div class="modal-body d-grid gap-3">
+                    <div>
+                        <label class="form-label fw-semibold" for="task-title">@T["TaskForm_Title"]</label>
+                        <input class="form-control" id="task-title" name="title" required maxlength="200" autocomplete="off" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold" for="task-assignee">@T["TaskForm_Assignee"]</label>
+                            <select class="ds-select" id="task-assignee" name="assigneeId">
+                                <option value="">@T["TaskDetail_Unassigned"]</option>
+                                @foreach (var member in Model.Members)
+                                {
+                                    <option value="@member.Id">@member.Name</option>
+                                }
+                            </select>
+                            <p class="form-text mb-0">@T["TaskForm_AssigneeHint"]</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold" for="task-column">@T["TaskForm_Column"]</label>
+                            <select class="ds-select" id="task-column" name="status">
+                                @foreach (var status in Model.Statuses)
+                                {
+                                    <option value="@status.Value" selected="@(status.Value == TaskState.Todo)">@status.Label</option>
+                                }
+                            </select>
+                            <p class="form-text mb-0">@T["TaskForm_ColumnHint"]</p>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold" for="task-priority">@T["TaskForm_Priority"]</label>
+                            <select class="ds-select" id="task-priority" name="priority">
+                                @foreach (var priority in Model.Priorities)
+                                {
+                                    <option value="@priority.Value" selected="@(priority.Value == ProjectPriority.Normal)">@priority.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold" for="task-due">@T["TaskForm_Due"]</label>
+                            <input class="form-control" id="task-due" name="dueDate" type="date" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold" for="task-description">@T["TaskForm_Description"]</label>
+                        <textarea class="form-control" id="task-description" name="description" rows="3" maxlength="4000"></textarea>
+                    </div>
+                    <p class="form-text mb-0">@T["TaskForm_Footnote"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">@T["Common_Cancel"]</button>
+                    <button class="btn btn-primary" type="submit">@T["TaskForm_Submit"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

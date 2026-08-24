@@ -1,0 +1,30 @@
+@model BoardColumnViewModel
+@{
+    var column = Model.Column;
+    var headingId = $"column-heading-{column.Status}";
+}
+
+<section class="ds-kanban-column"
+         style="--ds-kanban-accent: @Model.Accent;"
+         aria-labelledby="@headingId"
+         data-column-status="@column.Status">
+    <div class="ds-kanban-column__header">
+        <span class="ds-kanban-column__dot" aria-hidden="true"></span>
+        <h2 class="ds-kanban-column__title" id="@headingId">@Model.Label</h2>
+        <span class="ds-kanban-column__count"><bdi>@Model.Cards.Count</bdi></span>
+    </div>
+
+    <div class="ds-kanban-column__list" role="list" data-drop-zone="@column.Status">
+        @if (Model.Cards.Count == 0)
+        {
+            <p class="ds-kanban-column__empty">@T["KanbanColumn_Empty"]</p>
+        }
+        else
+        {
+            @foreach (var card in Model.Cards)
+            {
+                <partial name="_TaskCard" model="card" />
+            }
+        }
+    </div>
+</section>

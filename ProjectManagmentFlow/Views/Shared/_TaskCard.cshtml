@@ -1,0 +1,72 @@
+@model TaskCardViewModel
+@using ProjectManagmentFlow.Localization
+@{
+    var card = Model.Card;
+    var descriptionId = $"task-meta-{card.Id}";
+}
+
+<article class="ds-task-card @(Model.MayMove ? "is-draggable" : "is-locked")"
+         role="listitem"
+         draggable="@(Model.MayMove ? "true" : "false")"
+         tabindex="0"
+         data-task-id="@card.Id"
+         data-task-status="@card.Status"
+         data-may-move="@(Model.MayMove ? "true" : "false")"
+         aria-describedby="@descriptionId">
+    <div class="ds-task-card__top">
+        <span class="ds-priority ds-priority--@card.Priority">@T[$"ProjectPriority_{card.Priority}"]</span>
+        <span class="badge text-bg-light"><bdi dir="ltr">@card.Code</bdi></span>
+        @if (card.DueDate is { } due)
+        {
+            <span class="ds-task-card__due @(card.IsOverdue ? "is-overdue" : "")">
+                <span class="ds-visually-clipped">@(card.IsOverdue ? T["TaskCard_Overdue"] : T["TaskCard_Due"])</span>
+                <span class="ds-bidi-isolate">@due.Local()</span>
+            </span>
+        }
+    </div>
+
+    <div class="ds-task-card__footer">
+        <div class="ds-task-card__assignee">
+            @if (!string.IsNullOrWhiteSpace(card.AssigneeName))
+            {
+                <span class="ds-avatar ds-avatar-sm" aria-hidden="true">@NameInitials.Of(card.AssigneeName)</span>
+                <span class="ds-task-card__assignee-name">@card.AssigneeName</span>
+            }
+            else
+            {
+                <span class="ds-task-card__assignee-name">@T["TaskDetail_Unassigned"]</span>
+            }
+        </div>
+        <span class="ds-task-card__metric">
+            @if (!Model.MayMove)
+            {
+                <span title="@T["TaskCard_Locked"]" aria-hidden="true">🔒</span>
+            }
+            <span class="ds-visually-clipped">@T["TaskCard_Subtasks"]</span>
+            <span aria-hidden="true">☰</span><bdi>@card.SubtaskDone/@card.SubtaskTotal</bdi>
+        </span>
+    </div>
+
+    @* العنوان والوصف في الأسفل: كلٌّ منهما سطران على الأكثر ثمّ «…»،
+       فتتساوى ارتفاعات البطاقات مهما طال النصّ. *@
+    <div class="ds-task-card__body">
+        <h3 class="ds-task-card__title">
+            <a href="/projects/@Context.Request.RouteValues["id"]/tasks/@card.Id">@card.Title</a>
+        </h3>
+        @if (!string.IsNullOrWhiteSpace(card.Description))
+        {
+            <p class="ds-task-card__description">@card.Description</p>
+        }
+    </div>
+
+    <p id="@descriptionId" class="ds-visually-clipped">
+        @if (card.DueDate is { } dueDate && !card.IsOverdue)
+        {
+            @dueDate.Remaining(T)
+        }
+        @if (!Model.MayMove)
+        {
+            @T["KanbanColumn_MoveNotAllowed"]
+        }
+    </p>
+</article>

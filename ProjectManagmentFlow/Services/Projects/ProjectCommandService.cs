@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.Data;
@@ -149,7 +148,7 @@ public class ProjectCommandService : IProjectCommandService
                 await _context.SaveChangesAsync(cancellationToken);
                 return project;
             }
-            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            catch (DbUpdateException ex) when (SqlErrors.IsUniqueViolation(ex))
             {
                 // أعِد التهيئة قبل المحاولة: الرفض لا يزيل الصنف Added لكنه يترك القيم القديمة.
                 _context.Entry(project).State = EntityState.Added;
@@ -467,9 +466,6 @@ public class ProjectCommandService : IProjectCommandService
     }
 
     private static string Compose(int year, int sequence) => $"{year}-{sequence:D3}";
-
-    private static bool IsUniqueViolation(DbUpdateException ex) =>
-        ex.InnerException is SqlException { Number: 2601 or 2627 };
 
     private Task<Project?> LiveProject(Guid id, CancellationToken cancellationToken) =>
         _context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.DeletedAt == null, cancellationToken);

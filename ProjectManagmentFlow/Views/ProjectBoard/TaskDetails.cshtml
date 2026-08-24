@@ -1,0 +1,13 @@
+@model TaskDetailsViewModel
+
+@* الصفحة الكاملة وشاشة الدرج محتوىً واحد. تُعرض هنا للفتح المباشر وحين لا JS،
+   وتُعرض هناك داخل offcanvas — وجزئيّةٌ واحدة تمنع تباعدهما. *@
+<section class="ds-permissions-page">
+    <partial name="_ProjectHeader" model="Model.Header" />
+
+    <div class="ds-task-drawer ds-task-drawer--page">
+        <div class="offcanvas-body">
+            <partial name="_TaskDrawer" model="Model" />
+        </div>
+    </div>
+</section>

@@ -776,54 +776,18 @@ public class ProjectsController : Controller
 
     private ProjectHeaderViewModel BuildHeader(
         ProjectDetailRecord project,
-        IReadOnlyList<ProjectManagmentFlow.Services.Teams.TeamMemberCard> members,
+        IReadOnlyList<TeamMemberCard> members,
         string currentTab,
-        bool mayEdit)
-    {
-        var noDate = _text["ProjectDetail_NoDates"].Value;
-        var lead = members.FirstOrDefault(member => member.Role == TeamMemberRoles.Leader);
-
-        return new ProjectHeaderViewModel
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Code = project.Code,
-            UnitName = project.OrganizationName,
-            UnitHref = project.OrganizationId is { } unitId
-                ? Url.Action(nameof(Index), new { unit = unitId }) ?? "/Projects"
-                : "/Projects",
-            UnitType = new UnitTypeBadgeViewModel
-            {
-                Label = _text[$"OrgLevel_{Math.Min((int)project.OrganizationDepth, 3)}"],
-                IsRoot = project.OrganizationDepth == 0
-            },
-            Status = _text[$"ProjectStatus_{project.Status}"],
-            StatusClass = ProjectPresentation.StatusBadgeClass(project.Status),
-            Priority = _text[$"ProjectPriority_{project.Priority}"],
-            PriorityClass = $"ds-priority ds-priority--{project.Priority}",
-            OwnerName = project.OwnerName,
-            LeadName = lead?.Name,
-            StartLabel = project.StartDate is { } start ? start.Local() : noDate,
-            DueLabel = project.DueDate is { } due ? due.Local() : noDate,
-            TeamLabel = _text["ProjectDetail_TeamCount", members.Count],
-            MayEdit = mayEdit,
-            Tabs =
-            [
-                Tab("ProjectDetail_TabOverview", $"/projects/{project.Id}", "overview", true),
-                Tab("ProjectDetail_TabTeam", $"/projects/{project.Id}/team", "team", true),
-                Tab("ProjectDetail_TabActivity", $"/projects/{project.Id}/activity", "activity", true),
-                Tab("ProjectDetail_TabFiles", $"/projects/{project.Id}/files", "files", false)
-            ]
-        };
-
-        ProjectTabViewModel Tab(string key, string href, string tab, bool available) => new()
-        {
-            Label = _text[key],
-            Href = href,
-            IsCurrent = currentTab == tab,
-            IsAvailable = available
-        };
-    }
+        bool mayEdit) =>
+        ProjectHeaderBuilder.Build(
+            _text,
+            project,
+            members,
+            currentTab,
+            mayEdit,
+            project.OrganizationId is { } unitId
+                ? Url.Action("Index", "Projects", new { unit = unitId }) ?? "/Projects"
+                : "/Projects");
 
     private TaskStatusBarViewModel BuildStatusBar(string status, int count, int maximum)
     {
@@ -852,7 +816,7 @@ public class ProjectsController : Controller
             ? _text["Activity_System"].Value
             : activity.ActorName;
         var entity = _text[$"Activity_Entity_{activity.EntityType}"];
-        var payloadValue = ActivityPayloadLabel(activity.Payload);
+        var payloadValue = ActivityPayload.Describe(_text, activity.EntityType, activity.Payload);
         var tone = activity.Action switch
         {
             ActivityActions.Created => "success",
@@ -871,39 +835,6 @@ public class ProjectsController : Controller
         };
     }
 
-    private string ActivityPayloadLabel(string? payload)
-    {
-        if (string.IsNullOrWhiteSpace(payload)) return "—";
-
-        try
-        {
-            using var document = JsonDocument.Parse(payload);
-            var root = document.RootElement;
-            var name = root.TryGetProperty("Name", out var nameElement)
-                ? nameElement.ToString()
-                : null;
-            var value = root.TryGetProperty("Value", out var valueElement)
-                ? valueElement.ToString()
-                : root.TryGetProperty("Status", out var statusElement)
-                    ? statusElement.ToString()
-                    : null;
-
-            if (ProjectStatus.IsKnown(value)) value = _text[$"ProjectStatus_{value}"];
-            if (TeamMemberRoles.IsKnown(value)) value = _text[$"TeamRole_{value}"];
-
-            return (name, value) switch
-            {
-                ({ Length: > 0 }, { Length: > 0 }) => _text["Activity_NameAndValue", name, value],
-                ({ Length: > 0 }, _) => name,
-                (_, { Length: > 0 }) => value,
-                _ => "—"
-            };
-        }
-        catch (JsonException)
-        {
-            return "—";
-        }
-    }
 
     private async Task SetProjectBreadcrumbAsync(
         ProjectDetailRecord project,
@@ -912,22 +843,11 @@ public class ProjectsController : Controller
         var ancestors = project.OrganizationId is { } unitId
             ? await _organizations.GetAncestorsAsync(unitId, cancellationToken)
             : [];
+
         ViewData["Title"] = project.Name;
-        ViewData["Breadcrumb"] = new AppBreadcrumbViewModel
-        {
-            Label = project.Name,
-            Items =
-            [
-                new() { Label = _text["Dashboard_Title"], Url = "/Dashboard" },
-                new() { Label = _text["Nav_Projects"], Url = "/Projects" },
-                .. ancestors.Select(unit => new AppBreadcrumbItemViewModel
-                {
-                    Label = unit.Name,
-                    Url = Url.Action(nameof(Index), new { unit = unit.Id })
-                }),
-                new() { Label = project.Name, IsCurrent = true }
-            ]
-        };
+        ViewData["Breadcrumb"] = BreadcrumbBuilder.ForProject(
+            _text, ancestors, project.Name,
+            unit => Url.Action("Index", "Projects", new { unit }));
     }
 
     private ProjectCardViewModel BuildCard(ProjectCard card)
@@ -937,12 +857,14 @@ public class ProjectsController : Controller
             ? 0
             : (int)Math.Round(card.DoneTasks * 100d / card.TotalTasks);
         var level = Math.Min((int)card.OrganizationDepth, 3);
+        var today = DateOnly.FromDateTime(DisplayTime.RiyadhNow());
 
         return new ProjectCardViewModel
         {
             Id = card.Id,
             Code = card.Code,
             Name = card.Name,
+            Description = card.Description,
             StatusLabel = _text[$"ProjectStatus_{card.Status}"],
             StatusClass = ProjectPresentation.StatusClass(card.Status),
             StatusBadgeClass = ProjectPresentation.StatusBadgeClass(card.Status),
@@ -956,7 +878,11 @@ public class ProjectsController : Controller
             DueLabel = card.DueDate is { } due
                 ? _text["Projects_Due", due.Local()]
                 : _text["Projects_NoDue"],
+            IsOverdue = card.DueDate is { } dueDate
+                        && dueDate < today
+                        && card.Status != ProjectStatus.Done,
             ProgressLabel = $"{card.DoneTasks}/{card.TotalTasks}",
+            HasTasks = card.TotalTasks > 0,
             Percent = Math.Clamp(percent, 0, 100),
             Href = $"/projects/{card.Id}"
         };

@@ -43,6 +43,13 @@ public static class DisplayTime
         return DateOnly.FromDateTime(local).Local();
     }
 
+    /// <summary>صياغة محايدة للمدة المتبقية حتى تاريخ الاستحقاق بتوقيت الرياض.</summary>
+    public static string Remaining(this DateOnly due, IStringLocalizer text)
+    {
+        var remaining = due.DayNumber - DateOnly.FromDateTime(RiyadhNow()).DayNumber;
+        return text["Time_Remaining", Math.Max(0, remaining)];
+    }
+
     private static TimeZoneInfo ResolveRiyadh()
     {
         foreach (var id in new[] { "Asia/Riyadh", "Arab Standard Time" })

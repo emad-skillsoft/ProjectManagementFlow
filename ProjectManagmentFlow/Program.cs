@@ -24,6 +24,7 @@ using ProjectManagmentFlow.Services.Permissions;
 using ProjectManagmentFlow.Services.Projects;
 using ProjectManagmentFlow.Services.Activity;
 using ProjectManagmentFlow.Services.Teams;
+using ProjectManagmentFlow.Services.Tasks;
 
 //Added By Emad El Faramawi
 var builder = WebApplication.CreateBuilder(args);
@@ -116,6 +117,8 @@ builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<ITeamQueryService, TeamQueryService>();
 builder.Services.AddScoped<ITeamCommandService, TeamCommandService>();
+builder.Services.AddScoped<ITaskQueryService, TaskQueryService>();
+builder.Services.AddScoped<ITaskCommandService, TaskCommandService>();
 
 
 // يُحقنها LayoutResultFilter في ViewData.

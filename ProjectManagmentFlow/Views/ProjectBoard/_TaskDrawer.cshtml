@@ -1,0 +1,269 @@
+@model TaskDetailsViewModel
+@using ProjectManagmentFlow.Localization
+@{
+    var task = Model.Task;
+    var basePath = $"/projects/{task.ProjectId}/tasks/{task.Id}";
+    var canMove = Model.Permissions.ManagesBoard || task.AssigneeId == Model.Permissions.ActorId;
+    var done = task.Subtasks.Count(subtask => subtask.Status == TaskState.Done);
+    var percent = task.Subtasks.Count == 0 ? 0 : done * 100 / task.Subtasks.Count;
+}
+
+<header class="ds-task-drawer__top">
+    <button class="btn btn-sm btn-outline-secondary" type="button"
+            data-bs-dismiss="offcanvas" aria-label="@T["Common_Close"]">✕</button>
+    <span class="ds-task-drawer__state">
+        <span class="ds-status-dot ds-status-dot--info" aria-hidden="true"></span>@T[$"TaskState_{task.Status}"]
+    </span>
+    <span class="badge text-bg-light"><bdi dir="ltr">@task.Code</bdi></span>
+</header>
+
+@if (!string.IsNullOrWhiteSpace(Model.Saved))
+{
+    <div class="ds-alert-accent ds-success-bg ds-success-border p-3" role="status">@Model.Saved</div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.Error))
+{
+    <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3" role="alert">@Model.Error</div>
+}
+
+<h2 class="ds-task-drawer__title">@task.Title</h2>
+
+<div class="ds-task-drawer__grid">
+    <div>
+        <span class="ds-task-drawer__label">@T["TaskDetail_Status"]</span>
+        @if (canMove)
+        {
+            <form method="post" action="@basePath/status" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <select class="ds-select" name="status" aria-label="@T["TaskDetail_Status"]"
+                        onchange="this.form.requestSubmit()">
+                    @foreach (var status in Model.Statuses)
+                    {
+                        <option value="@status.Value" selected="@status.IsSelected">@status.Label</option>
+                    }
+                </select>
+                <noscript><button class="btn btn-sm btn-outline-primary mt-1" type="submit">@T["Common_Save"]</button></noscript>
+            </form>
+        }
+        else
+        {
+            <p class="ds-task-drawer__value">@T[$"TaskState_{task.Status}"]</p>
+        }
+    </div>
+
+    <div>
+        <span class="ds-task-drawer__label">@T["TaskDetail_Priority"]</span>
+        @if (Model.Permissions.ManagesBoard)
+        {
+            <form method="post" action="@basePath/priority" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <select class="ds-select" name="priority" aria-label="@T["TaskDetail_Priority"]"
+                        onchange="this.form.requestSubmit()">
+                    @foreach (var priority in Model.Priorities)
+                    {
+                        <option value="@priority.Value" selected="@priority.IsSelected">@priority.Label</option>
+                    }
+                </select>
+                <noscript><button class="btn btn-sm btn-outline-primary mt-1" type="submit">@T["Common_Save"]</button></noscript>
+            </form>
+        }
+        else
+        {
+            <p class="ds-task-drawer__value">@T[$"ProjectPriority_{task.Priority}"]</p>
+        }
+    </div>
+
+    <div>
+        <span class="ds-task-drawer__label">@T["TaskDetail_Assignee"]</span>
+        @if (Model.Permissions.ManagesBoard)
+        {
+            <form method="post" action="@basePath/assign" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <select class="ds-select" name="assigneeId" aria-label="@T["TaskDetail_Assignee"]"
+                        onchange="this.form.requestSubmit()">
+                    <option value="">@T["TaskDetail_Unassigned"]</option>
+                    @foreach (var member in Model.Members)
+                    {
+                        <option value="@member.Id" selected="@(member.Id == task.AssigneeId)">@member.Name</option>
+                    }
+                </select>
+                <noscript><button class="btn btn-sm btn-outline-primary mt-1" type="submit">@T["Common_Save"]</button></noscript>
+            </form>
+        }
+        else if (!string.IsNullOrWhiteSpace(task.AssigneeName))
+        {
+            <p class="ds-task-drawer__value ds-task-drawer__person">
+                <span class="ds-avatar ds-avatar-sm" aria-hidden="true">@NameInitials.Of(task.AssigneeName)</span>
+                @task.AssigneeName
+            </p>
+        }
+        else
+        {
+            <p class="ds-task-drawer__value">@T["TaskDetail_Unassigned"]</p>
+        }
+    </div>
+
+    <div>
+        <span class="ds-task-drawer__label">@T["TaskForm_Due"]</span>
+        @if (task.DueDate is { } due)
+        {
+            <p class="ds-task-drawer__value @(task.IsOverdue ? "is-overdue" : "")">
+                <bdi>@due.Local()</bdi>
+                @if (!task.IsOverdue)
+                {
+                    <span class="d-block small text-body-secondary">@due.Remaining(T)</span>
+                }
+            </p>
+        }
+        else
+        {
+            <p class="ds-task-drawer__value">—</p>
+        }
+    </div>
+</div>
+
+<section class="ds-task-drawer__section" aria-label="@T["TaskForm_Description"]">
+    @if (Model.MayEdit)
+    {
+        @* التعديل حقُّ منشئ المهمّة ومدير اللوحة؛ يُفتح بالطيّ كي لا يزاحم القراءة. *@
+        <details class="ds-task-drawer__edit">
+            <summary>@T["TaskDetail_Edit"]</summary>
+            <form method="post" action="@basePath/update" class="d-grid gap-2 mt-2" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <label class="ds-visually-clipped" for="edit-title-@task.Id">@T["TaskForm_Title"]</label>
+                <input class="form-control" id="edit-title-@task.Id" name="title" required
+                       maxlength="200" value="@task.Title" />
+                <label class="ds-visually-clipped" for="edit-desc-@task.Id">@T["TaskForm_Description"]</label>
+                <textarea class="form-control" id="edit-desc-@task.Id" name="description" rows="4"
+                          maxlength="4000" placeholder="@T["TaskForm_Description"]">@task.Description</textarea>
+                <label class="ds-visually-clipped" for="edit-due-@task.Id">@T["TaskForm_Due"]</label>
+                <input class="form-control" id="edit-due-@task.Id" name="dueDate" type="date"
+                       value="@task.DueDate.ToIso()" />
+                <button class="btn btn-outline-primary justify-self-start" type="submit">@T["Common_Save"]</button>
+            </form>
+        </details>
+    }
+    else
+    {
+        <p class="ds-task-drawer__description">
+            @(string.IsNullOrWhiteSpace(task.Description) ? T["TaskDetail_NoDescription"].Value : task.Description)
+        </p>
+    }
+</section>
+
+<section class="ds-task-drawer__section">
+    <h3 class="ds-task-drawer__heading">
+        @T["TaskDetail_Subtasks"] <bdi class="text-body-secondary">@done/@task.Subtasks.Count</bdi>
+    </h3>
+
+    <div class="ds-progress" role="progressbar" aria-label="@T["TaskDetail_Subtasks"]"
+         aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+        <span class="ds-progress-bar" style="--ds-progress-value:@(percent)%"></span>
+    </div>
+
+    @if (task.Subtasks.Count == 0)
+    {
+        <p class="form-text mt-2 mb-0">@T["TaskForm_SubtaskHint"]</p>
+    }
+    else
+    {
+        <ul class="ds-subtask-list">
+            @foreach (var subtask in task.Subtasks)
+            {
+                var isDone = subtask.Status == TaskState.Done;
+                <li class="ds-subtask @(isDone ? "is-done" : null)">
+                    @if (Model.MaySubtask)
+                    {
+                        <form method="post" action="@basePath/subtasks/@subtask.Id/toggle" data-drawer-form>
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="done" value="@(isDone ? "false" : "true")" />
+                            <input class="form-check-input" type="checkbox" id="sub-@subtask.Id"
+                                   checked="@isDone" onchange="this.form.requestSubmit()" />
+                            <label class="ds-subtask__title" for="sub-@subtask.Id">@subtask.Title</label>
+                        </form>
+                    }
+                    else
+                    {
+                        <input class="form-check-input" type="checkbox" checked="@isDone" disabled
+                               aria-label="@subtask.Title" />
+                        <span class="ds-subtask__title">@subtask.Title</span>
+                    }
+                </li>
+            }
+        </ul>
+    }
+
+    @if (Model.MaySubtask)
+    {
+        <form method="post" action="@basePath/subtasks" class="d-flex gap-2 mt-2" data-drawer-form>
+            @Html.AntiForgeryToken()
+            <label class="ds-visually-clipped" for="subtask-@task.Id">@T["TaskDetail_AddSubtask"]</label>
+            <input class="form-control" id="subtask-@task.Id" name="title" required maxlength="200"
+                   placeholder="@T["TaskDetail_SubtaskPlaceholder"]" autocomplete="off" />
+            <button class="btn btn-outline-primary" type="submit">@T["TaskForm_Add"]</button>
+        </form>
+    }
+</section>
+
+@* التعليقات مؤجّلة بقرارٍ من المالك: تُعرض معطّلةً كي يظهر موضعها في التصميم
+   ولا يظنّها المستخدم عطلاً. تُفعَّل حين يصل كيان التعليقات. *@
+<section class="ds-task-drawer__section is-deferred" aria-label="@T["TaskDetail_Comments"]">
+    <h3 class="ds-task-drawer__heading">
+        @T["TaskDetail_Comments"]
+        <span class="badge text-bg-light">@T["Common_ComingSoon"]</span>
+    </h3>
+    <p class="form-text mb-2">@T["TaskDetail_CommentsDeferred"]</p>
+    <div class="d-flex gap-2">
+        <label class="ds-visually-clipped" for="comment-@task.Id">@T["TaskDetail_Comments"]</label>
+        <input class="form-control" id="comment-@task.Id" disabled
+               placeholder="@T["TaskDetail_CommentPlaceholder"]" />
+        <button class="btn btn-primary" type="button" disabled>@T["TaskDetail_CommentSend"]</button>
+    </div>
+</section>
+
+<section class="ds-task-drawer__section">
+    <h3 class="ds-task-drawer__heading">@T["TaskDetail_Log"]</h3>
+    @if (task.Activity.Count == 0)
+    {
+        <p class="text-body-secondary mb-0">@T["Activity_Empty"]</p>
+    }
+    else
+    {
+        <ol class="ds-timeline mb-0">
+            @foreach (var entry in task.Activity)
+            {
+                var actor = entry.ActorName ?? T["Activity_System"].Value;
+                <li class="ds-timeline-item">
+                    <span class="ds-timeline-rail" aria-hidden="true">
+                        <span class="ds-timeline-dot ds-timeline-dot--info"></span>
+                        <span class="ds-timeline-connector"></span>
+                    </span>
+                    <div class="ds-timeline-body">
+                        <p class="ds-timeline-title">@T[$"Activity_{entry.Action}", actor, T["Activity_Entity_Task"], ActivityPayload.Value(T, ActivityEntities.Task, entry.Payload)]</p>
+                        <time class="ds-timeline-time" datetime="@entry.CreatedAt.ToString("O")">@entry.CreatedAt.Relative(T)</time>
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+</section>
+
+@if (Model.Permissions.ManagesBoard)
+{
+    <section class="ds-task-drawer__section">
+        @if (task.Status == TaskState.Cancelled)
+        {
+            <form method="post" action="@basePath/restore" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-primary" type="submit">@T["Task_Restore"]</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" action="@basePath/cancel" data-drawer-form>
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-danger" type="submit">@T["TaskState_cancelled"]</button>
+            </form>
+        }
+    </section>
+}

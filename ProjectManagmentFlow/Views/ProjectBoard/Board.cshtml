@@ -1,0 +1,65 @@
+@model ProjectBoardViewModel
+@using ProjectManagmentFlow.Localization
+
+<section class="ds-permissions-page">
+    <partial name="_ProjectHeader" model="Model.Header" />
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3 mb-3" role="alert">@Model.Error</div>
+    }
+
+    <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <div class="flex-grow-1">
+            <h2 class="h5 mb-1">@T["Board_Title"]</h2>
+            <p class="text-body-secondary mb-0">
+                @(Model.Permissions.ManagesBoard ? T["Board_MoveHintLead"] : T["Board_MoveHintMember"])
+            </p>
+        </div>
+        @if (Model.Permissions.CanCreate)
+        {
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#new-task-modal">
+                <span aria-hidden="true">+</span> @T["KanbanColumn_AddTask"]
+            </button>
+        }
+    </div>
+
+    @if (Model.TotalCards == 0)
+    {
+        <div class="ds-empty-state mb-3"><p class="mb-0">@T["Board_Empty"]</p></div>
+    }
+
+    <div class="ds-kanban-board"
+         data-board
+         data-project-id="@Model.ProjectId"
+         data-rtl="@(DisplayCulture.IsArabic ? "true" : "false")">
+        @foreach (var column in Model.Columns)
+        {
+            <partial name="_KanbanColumn" model="column" />
+        }
+    </div>
+
+    <p class="ds-visually-clipped" role="status" aria-live="polite" data-board-announcer></p>
+
+    @* درج تفاصيل المهمّة: يُملأ عند الضغط على البطاقة. الرابط في البطاقة يبقى
+       عاملاً بلا JS، فيفتح الصفحة الكاملة بدلاً من الدرج. *@
+    <aside class="offcanvas offcanvas-end ds-task-drawer" tabindex="-1"
+           id="task-drawer" aria-label="@T["TaskDetail_Log"]" data-task-drawer>
+        <div class="offcanvas-body" data-task-drawer-body></div>
+    </aside>
+    <form method="post" action="/projects/@Model.ProjectId/board/move" hidden data-board-move-form>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="taskId" data-field="taskId" />
+        <input type="hidden" name="status" data-field="status" />
+        <input type="hidden" name="afterTaskId" data-field="afterTaskId" />
+    </form>
+
+    @if (Model.Permissions.CanCreate)
+    {
+        <partial name="_NewTaskModal" model="Model" />
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/board.js" asp-append-version="true"></script>
+}
