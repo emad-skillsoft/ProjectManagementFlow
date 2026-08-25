@@ -10,6 +10,12 @@ public interface ITaskCommandService
         Guid actorId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>مهمّة بلا مشروع: تُسند إلى منشئها وتبقى خاصّةً به.</summary>
+    Task<ProjectTask> CreatePersonalAsync(
+        PersonalTaskInput input,
+        Guid actorId,
+        CancellationToken cancellationToken = default);
+
     Task<ProjectTask> AddSubtaskAsync(
         Guid parentTaskId,
         string title,

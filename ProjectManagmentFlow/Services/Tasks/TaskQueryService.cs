@@ -22,8 +22,12 @@ public sealed class TaskQueryService(
             .FirstOrDefaultAsync(cancellationToken);
         var rows = await CardRows(projectId, cancellationToken);
         var today = DateOnly.FromDateTime(DisplayTime.RiyadhNow());
-        var cards = rows.Select(row => ToCard(row, today)).ToList();
         var permissions = BoardPermissions.FromMembers(members, actorId, ownerId);
+
+        // المهمّة الخاصّة تُحجب هنا لا في العرض: ما لا يُرى لا يُرسَل.
+        var cards = rows.Select(row => ToCard(row, today))
+            .Where(permissions.CanSee)
+            .ToList();
 
         // «ملغاة» عمودٌ إداريّ: يُحجب عن العضو صفّاً وبطاقاتٍ معاً،
         // فلا يراه ولا يرى ما فيه.
@@ -51,11 +55,11 @@ public sealed class TaskQueryService(
             join creator in context.Users.AsNoTracking()
                 on task.CreatedById equals (Guid?)creator.Id into creators
             from creator in creators.DefaultIfEmpty()
-            where task.Id == taskId && task.ProjectId != null
+            where task.Id == taskId
             select new
             {
                 task.Id,
-                ProjectId = task.ProjectId!.Value,
+                task.ProjectId,
                 task.Code,
                 task.Title,
                 task.Description,
@@ -72,7 +76,7 @@ public sealed class TaskQueryService(
         if (row is null) return null;
 
         var today = DateOnly.FromDateTime(DisplayTime.RiyadhNow());
-        var subtasks = (await CardRows(row.ProjectId, cancellationToken, taskId))
+        var subtasks = (await SubtaskRows(row.ProjectId, taskId, cancellationToken))
             .Select(item => ToCard(item, today))
             .OrderBy(item => item.Position)
             .ToList();
@@ -109,42 +113,150 @@ public sealed class TaskQueryService(
             activity);
     }
 
-    public async Task<IReadOnlyList<TaskCard>> GetMyTasksAsync(
+    /// <summary>
+    /// ما أُسند إلى المستخدم عبر المشاريع، ومهامّه الشخصية — مجموعةً لكلّ مشروع
+    /// والشخصية أخيراً. المهامّ الفرعيّة مستثناة: ترث المسنَد إليه من أمّها
+    /// فإدراجها يُكرّر الصفّ نفسه مرّتين.
+    /// </summary>
+    public async Task<MyTasksView> GetMyTasksAsync(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var rows = await CardRows(null, cancellationToken, null, userId);
         var today = DateOnly.FromDateTime(DisplayTime.RiyadhNow());
 
-        // الملغاة والمنجزة خارج «مهامي»: الشاشة قائمةُ عملٍ لا أرشيف.
-        // والسقف يمنع مستخدماً بمئات المهامّ من سحبها كلّها في طلبٍ واحد.
-        return rows.Select(row => ToCard(row, today))
-            .Where(card => card.Status != TaskState.Done && card.Status != TaskState.Cancelled)
-            .OrderBy(card => card.DueDate is null)
-            .ThenBy(card => card.DueDate)
-            .ThenBy(card => card.Position)
-            .Take(200)
+        var assigned = await (
+            from task in context.Tasks.AsNoTracking()
+            join project in context.Projects.AsNoTracking()
+                on task.ProjectId equals project.Id
+            join assignee in context.Users.AsNoTracking()
+                on task.AssigneeId equals (Guid?)assignee.Id into assignees
+            from assignee in assignees.DefaultIfEmpty()
+            where task.AssigneeId == userId
+                  && task.ParentTaskId == null
+                  && project.DeletedAt == null
+            orderby project.Name, task.DueDate, task.Position
+            select new
+            {
+                Project = project.Name,
+                Row = new CardRow(
+                    task.Id,
+                    task.ProjectId,
+                    task.Visibility,
+                    task.Code,
+                    task.Title,
+                    task.Description,
+                    task.Status,
+                    task.Priority,
+                    task.AssigneeId,
+                    assignee == null ? null : assignee.FullName ?? assignee.Email,
+                    task.CreatedById,
+                    task.DueDate,
+                    task.Subtasks.Count,
+                    task.Subtasks.Count(subtask => subtask.CompletedAt != null),
+                    task.Position ?? 0m)
+            }).ToListAsync(cancellationToken);
+
+        var personal = await (
+            from task in context.Tasks.AsNoTracking()
+            where task.ProjectId == null
+                  && task.CreatedById == userId
+                  && task.ParentTaskId == null
+            orderby task.DueDate, task.Position
+            select new CardRow(
+                task.Id,
+                task.ProjectId,
+                task.Visibility,
+                task.Code,
+                task.Title,
+                task.Description,
+                task.Status,
+                task.Priority,
+                task.AssigneeId,
+                null,
+                task.CreatedById,
+                task.DueDate,
+                task.Subtasks.Count,
+                task.Subtasks.Count(subtask => subtask.CompletedAt != null),
+                task.Position ?? 0m)).ToListAsync(cancellationToken);
+
+        var groups = assigned
+            .GroupBy(item => item.Project)
+            .Select(group => new MyTaskGroup(
+                group.First().Row.ProjectId,
+                group.Key,
+                false,
+                group.Select(item => ToCard(item.Row, today)).ToList()))
             .ToList();
+
+        if (personal.Count > 0)
+        {
+            groups.Add(new MyTaskGroup(
+                null,
+                string.Empty,
+                true,
+                personal.Select(row => ToCard(row, today)).ToList()));
+        }
+
+        return new MyTasksView(groups);
     }
 
-    private async Task<List<CardRow>> CardRows(
-        Guid? projectId,
-        CancellationToken cancellationToken,
-        Guid? parentTaskId = null,
-        Guid? assigneeId = null)
+    /// <summary>
+    /// المشاريع التي يجوز للفاعل إنشاء مهمّة فريقٍ فيها — أي ما يملكه أو يقود
+    /// فريقه أو ينوب عنه. تُرشَّح بالصلاحية نفسها التي يحرسها أمر الإنشاء،
+    /// فلا تعرض الواجهة خياراً يُرفض عند الإرسال.
+    /// </summary>
+    public async Task<IReadOnlyList<TeamTaskTarget>> GetTeamTaskTargetsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
-        var query =
+        // المرشّحون: ما يملكه، وما هو عضوٌ في فريقه. الحسم بعدها بـ BoardPermissions.
+        var candidates = await (
+            from project in context.Projects.AsNoTracking()
+            where project.DeletedAt == null
+                  && (project.OwnerId == userId
+                      || context.TeamMembers.Any(member =>
+                          member.UserId == userId
+                          && context.Teams.Any(team =>
+                              team.Id == member.TeamId && team.ProjectId == project.Id)))
+            orderby project.Name
+            select new { project.Id, project.Name, project.OwnerId })
+            .ToListAsync(cancellationToken);
+
+        var targets = new List<TeamTaskTarget>();
+        foreach (var candidate in candidates)
+        {
+            var members = await teams.GetMembersAsync(candidate.Id, cancellationToken);
+            if (!BoardPermissions.FromMembers(members, userId, candidate.OwnerId).CanCreate) continue;
+
+            targets.Add(new TeamTaskTarget(
+                candidate.Id,
+                candidate.Name,
+                members.Select(member => new TeamTaskAssignee(member.UserId, member.Name)).ToList()));
+        }
+
+        return targets;
+    }
+
+    /// <summary>
+    /// فرعيّات مهمّةٍ بعينها. مستقلّ عن CardRows لأنّ ذاك يشترط المشروع —
+    /// وفرعيّات المهمّة الشخصية بلا مشروع.
+    /// </summary>
+    private async Task<List<CardRow>> SubtaskRows(
+        Guid? projectId,
+        Guid parentTaskId,
+        CancellationToken cancellationToken) =>
+        await (
             from task in context.Tasks.AsNoTracking()
             join assignee in context.Users.AsNoTracking()
                 on task.AssigneeId equals (Guid?)assignee.Id into assignees
             from assignee in assignees.DefaultIfEmpty()
-            where task.ProjectId != null
-                  && (projectId == null || task.ProjectId == projectId)
-                  && task.ParentTaskId == parentTaskId
-                  && (assigneeId == null || task.AssigneeId == assigneeId)
+            where task.ParentTaskId == parentTaskId
+                  && (projectId == null ? task.ProjectId == null : task.ProjectId == projectId)
             orderby task.Position, task.CreatedAt, task.Id
             select new CardRow(
                 task.Id,
+                task.ProjectId,
+                task.Visibility,
                 task.Code,
                 task.Title,
                 task.Description,
@@ -156,13 +268,46 @@ public sealed class TaskQueryService(
                 task.DueDate,
                 task.Subtasks.Count,
                 task.Subtasks.Count(subtask => subtask.CompletedAt != null),
-                task.Position ?? 0m);
+                task.Position ?? 0m)).ToListAsync(cancellationToken);
+
+    private async Task<List<CardRow>> CardRows(
+        Guid? projectId,
+        CancellationToken cancellationToken,
+        Guid? parentTaskId = null)
+    {
+        var query =
+            from task in context.Tasks.AsNoTracking()
+            join assignee in context.Users.AsNoTracking()
+                on task.AssigneeId equals (Guid?)assignee.Id into assignees
+            from assignee in assignees.DefaultIfEmpty()
+            where task.ProjectId != null
+                  && (projectId == null || task.ProjectId == projectId)
+                  && task.ParentTaskId == parentTaskId
+            orderby task.Position, task.CreatedAt, task.Id
+            select new CardRow(
+                    task.Id,
+                    task.ProjectId,
+                    task.Visibility,
+                    task.Code,
+                    task.Title,
+                    task.Description,
+                    task.Status,
+                    task.Priority,
+                    task.AssigneeId,
+                    assignee == null ? null : assignee.FullName ?? assignee.Email,
+                    task.CreatedById,
+                    task.DueDate,
+                    task.Subtasks.Count,
+                    task.Subtasks.Count(subtask => subtask.CompletedAt != null),
+                    task.Position ?? 0m);
 
         return await query.ToListAsync(cancellationToken);
     }
 
     private static TaskCard ToCard(CardRow row, DateOnly today) => new(
         row.Id,
+        row.ProjectId,
+        TaskVisibility.Read(row.Visibility),
         row.Code,
         row.Title,
         row.Description,
@@ -182,6 +327,8 @@ public sealed class TaskQueryService(
 
     private sealed record CardRow(
         Guid Id,
+        Guid? ProjectId,
+        string? Visibility,
         string Code,
         string Title,
         string? Description,

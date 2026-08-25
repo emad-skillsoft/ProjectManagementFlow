@@ -11,7 +11,11 @@ public interface ITaskQueryService
 
     Task<TaskDetail?> GetDetailAsync(Guid taskId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<TaskCard>> GetMyTasksAsync(
+    Task<MyTasksView> GetMyTasksAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TeamTaskTarget>> GetTeamTaskTargetsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 }

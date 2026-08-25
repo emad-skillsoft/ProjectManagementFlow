@@ -14,6 +14,7 @@ public sealed class TaskCommandService(
     ITeamQueryService teams) : ITaskCommandService
 {
     private const string CodePrefix = "T-";
+    private const string PersonalPrefix = "P-";
     private const decimal PositionGap = 1000m;
     private const decimal MinimumGap = 0.000002m;
 
@@ -33,6 +34,7 @@ public sealed class TaskCommandService(
 
         ValidateStatus(input.Status);
         ValidatePriority(input.Priority);
+        ValidateVisibility(input.Visibility);
         if (input.AssigneeId is { } assigneeId)
         {
             await RequireTeamMemberAsync(projectId, assigneeId, cancellationToken);
@@ -45,6 +47,7 @@ public sealed class TaskCommandService(
             Description = RequireDescription(input.Description),
             Status = input.Status,
             Priority = input.Priority,
+            Visibility = input.Visibility,
             AssigneeId = input.AssigneeId,
             DueDate = input.DueDate,
             Position = await NextPositionAsync(projectId, null, input.Status, cancellationToken),
@@ -56,7 +59,41 @@ public sealed class TaskCommandService(
         context.Tasks.Add(task);
         activity.Add(project.OrganizationId, projectId, actorId, ActivityEntities.Task, task.Id,
             ActivityActions.Created, new { Name = task.Title, task.Code });
-        await SaveWithCodeAsync(task, projectId, cancellationToken);
+        await SaveWithCodeAsync(task, cancellationToken);
+        return task;
+    }
+
+    /// <summary>
+    /// المهمّة الشخصية لا مشروع لها ولا فريق: تُسند إلى منشئها وتُختم «خاصّة».
+    /// لا حارس صلاحيّةٍ هنا لأنّ كلّ مستخدمٍ يملك دفتره — والحارس أنّها لا تُرى لغيره.
+    /// </summary>
+    public async Task<ProjectTask> CreatePersonalAsync(
+        PersonalTaskInput input,
+        Guid actorId,
+        CancellationToken cancellationToken = default)
+    {
+        ValidatePriority(input.Priority);
+
+        var task = new ProjectTask
+        {
+            ProjectId = null,
+            Title = RequireTitle(input.Title),
+            Description = RequireDescription(input.Description),
+            Status = TaskState.Todo,
+            Priority = input.Priority,
+            Visibility = TaskVisibility.Private,
+            AssigneeId = actorId,
+            DueDate = input.DueDate,
+            Position = await NextPositionAsync(null, null, TaskState.Todo, cancellationToken),
+            CreatedById = actorId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        context.Tasks.Add(task);
+        activity.Add(null, null, actorId, ActivityEntities.Task, task.Id,
+            ActivityActions.Created, new { Name = task.Title });
+        await SaveWithCodeAsync(task, cancellationToken);
         return task;
     }
 
@@ -67,33 +104,35 @@ public sealed class TaskCommandService(
         CancellationToken cancellationToken = default)
     {
         var parent = await LoadAsync(parentTaskId, cancellationToken);
-        var projectId = RequireProjectId(parent);
-        var permissions = await PermissionsAsync(projectId, actorId, cancellationToken);
+        var permissions = await PermissionsForAsync(parent, actorId, cancellationToken);
         if (!permissions.CanSubtask(ToCard(parent)))
         {
             throw new DomainException(text["Task_SubtaskNotAllowed"]);
         }
 
-        var project = await LiveProjectAsync(projectId, cancellationToken)
-            ?? throw new DomainException(text["Project_NotFound"]);
+        var organizationId = parent.ProjectId is { } parentProjectId
+            ? (await LiveProjectAsync(parentProjectId, cancellationToken)
+                ?? throw new DomainException(text["Project_NotFound"])).OrganizationId
+            : null;
         var task = new ProjectTask
         {
-            ProjectId = projectId,
+            ProjectId = parent.ProjectId,
             ParentTaskId = parent.Id,
             Title = RequireTitle(title),
             Status = TaskState.Todo,
             Priority = parent.Priority,
+            Visibility = parent.Visibility,
             AssigneeId = parent.AssigneeId,
             CreatedById = actorId,
-            Position = await NextPositionAsync(projectId, parent.Id, TaskState.Todo, cancellationToken),
+            Position = await NextPositionAsync(parent.ProjectId, parent.Id, TaskState.Todo, cancellationToken),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         context.Tasks.Add(task);
-        activity.Add(project.OrganizationId, projectId, actorId, ActivityEntities.Task, task.Id,
+        activity.Add(organizationId, parent.ProjectId, actorId, ActivityEntities.Task, task.Id,
             ActivityActions.Added, new { Name = task.Title, Parent = parent.Title });
-        await SaveWithCodeAsync(task, projectId, cancellationToken);
+        await SaveWithCodeAsync(task, cancellationToken);
         return task;
     }
 
@@ -106,10 +145,9 @@ public sealed class TaskCommandService(
         CancellationToken cancellationToken = default)
     {
         var task = await LoadAsync(taskId, cancellationToken);
-        var projectId = RequireProjectId(task);
 
         // التعديل حقُّ من أنشأ المهمّة، ومن يدير اللوحة.
-        var permissions = await PermissionsAsync(projectId, actorId, cancellationToken);
+        var permissions = await PermissionsForAsync(task, actorId, cancellationToken);
         if (!permissions.CanEdit(ToCard(task)))
         {
             throw new DomainException(text["Task_EditNotAllowed"]);
@@ -152,8 +190,7 @@ public sealed class TaskCommandService(
         }
 
         var task = await LoadAsync(taskId, cancellationToken);
-        var projectId = RequireProjectId(task);
-        var permissions = await PermissionsAsync(projectId, actorId, cancellationToken);
+        var permissions = await PermissionsForAsync(task, actorId, cancellationToken);
         if (!permissions.CanMove(ToCard(task)))
         {
             throw new DomainException(text["Task_MoveNotAllowed"]);
@@ -172,7 +209,7 @@ public sealed class TaskCommandService(
         {
             var anchor = await context.Tasks.AsNoTracking().FirstOrDefaultAsync(candidate =>
                 candidate.Id == anchorId
-                && candidate.ProjectId == projectId
+                && candidate.ProjectId == task.ProjectId
                 && candidate.ParentTaskId == task.ParentTaskId
                 && candidate.Status == status,
                 cancellationToken);
@@ -198,8 +235,7 @@ public sealed class TaskCommandService(
     {
         ValidatePriority(priority);
         var task = await LoadAsync(taskId, cancellationToken);
-        var projectId = RequireProjectId(task);
-        await RequireManagerAsync(projectId, actorId, "Task_EditNotAllowed", cancellationToken);
+        await RequireManagerAsync(task, actorId, "Task_EditNotAllowed", cancellationToken);
 
         task.Priority = priority;
         task.UpdatedAt = DateTime.UtcNow;
@@ -214,8 +250,11 @@ public sealed class TaskCommandService(
         CancellationToken cancellationToken = default)
     {
         var task = await LoadAsync(taskId, cancellationToken);
-        var projectId = RequireProjectId(task);
-        await RequireManagerAsync(projectId, actorId, "Task_EditNotAllowed", cancellationToken);
+
+        // المهمّة الشخصية لا تُسنَد إلى غير صاحبها: لا فريق يستقبلها.
+        var projectId = task.ProjectId
+            ?? throw new DomainException(text["Task_PersonalNotAssignable"], nameof(ProjectTask.AssigneeId));
+        await RequireManagerAsync(task, actorId, "Task_EditNotAllowed", cancellationToken);
         if (assigneeId is { } memberId)
         {
             await RequireTeamMemberAsync(projectId, memberId, cancellationToken);
@@ -248,12 +287,11 @@ public sealed class TaskCommandService(
 
     private async Task SaveWithCodeAsync(
         ProjectTask task,
-        Guid projectId,
         CancellationToken cancellationToken)
     {
         for (var attempt = 0; attempt < 3; attempt++)
         {
-            task.Code = await NextCodeAsync(projectId, cancellationToken);
+            task.Code = await NextCodeAsync(task, cancellationToken);
             try
             {
                 await context.SaveChangesAsync(cancellationToken);
@@ -275,11 +313,13 @@ public sealed class TaskCommandService(
         object payload,
         CancellationToken cancellationToken)
     {
-        var projectId = RequireProjectId(task);
-        var organizationId = await context.Projects.AsNoTracking()
-            .Where(project => project.Id == projectId)
-            .Select(project => project.OrganizationId)
-            .FirstOrDefaultAsync(cancellationToken);
+        var projectId = task.ProjectId;
+        var organizationId = projectId is { } id
+            ? await context.Projects.AsNoTracking()
+                .Where(project => project.Id == id)
+                .Select(project => project.OrganizationId)
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
         activity.Add(organizationId, projectId, actorId, ActivityEntities.Task, task.Id, action, payload);
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -289,9 +329,12 @@ public sealed class TaskCommandService(
         Guid? afterTaskId,
         CancellationToken cancellationToken)
     {
-        var projectId = RequireProjectId(task);
+        var projectId = task.ProjectId;
+        var owner = task.CreatedById;
         var column = await context.Tasks
-            .Where(candidate => candidate.ProjectId == projectId
+            .Where(candidate => (projectId == null
+                                    ? candidate.ProjectId == null && candidate.CreatedById == owner
+                                    : candidate.ProjectId == projectId)
                                 && candidate.ParentTaskId == task.ParentTaskId
                                 && candidate.Status == task.Status
                                 && candidate.Id != task.Id)
@@ -348,13 +391,32 @@ public sealed class TaskCommandService(
             ownerId);
     }
 
+    /// <summary>
+    /// صلاحيّة المهمّة حيث هي: من فريق مشروعها إن تبعت مشروعاً، ومن ملكيّتها
+    /// إن كانت شخصية. وغيرُ صاحب الشخصية يُردّ بـ«غير موجودة» لا بـ«ممنوع»،
+    /// كي لا يُستدلّ على وجودها.
+    /// </summary>
+    private async Task<BoardPermissions> PermissionsForAsync(
+        ProjectTask task,
+        Guid actorId,
+        CancellationToken cancellationToken)
+    {
+        if (task.ProjectId is { } projectId)
+        {
+            return await PermissionsAsync(projectId, actorId, cancellationToken);
+        }
+
+        if (task.CreatedById != actorId) throw new DomainException(text["Task_NotFound"]);
+        return new BoardPermissions(true, actorId);
+    }
+
     private async Task RequireManagerAsync(
-        Guid projectId,
+        ProjectTask task,
         Guid actorId,
         string errorKey,
         CancellationToken cancellationToken)
     {
-        if (!(await PermissionsAsync(projectId, actorId, cancellationToken)).ManagesBoard)
+        if (!(await PermissionsForAsync(task, actorId, cancellationToken)).ManagesBoard)
         {
             throw new DomainException(text[errorKey]);
         }
@@ -374,7 +436,7 @@ public sealed class TaskCommandService(
     }
 
     private async Task<ProjectTask> LoadAsync(Guid taskId, CancellationToken cancellationToken) =>
-        await context.Tasks.FirstOrDefaultAsync(task => task.Id == taskId && task.ProjectId != null, cancellationToken)
+        await context.Tasks.FirstOrDefaultAsync(task => task.Id == taskId, cancellationToken)
         ?? throw new DomainException(text["Task_NotFound"]);
 
     private Task<Project?> LiveProjectAsync(Guid projectId, CancellationToken cancellationToken) =>
@@ -384,24 +446,32 @@ public sealed class TaskCommandService(
     /// أكبر رقمٍ في المشروع يُحسب في القاعدة لا بجلب رموزه كلّها:
     /// الدالّة تُنادى داخل حلقة إعادة المحاولة، فجلبُ الجدول ثلاث مرّات لا يُحتمل.
     /// </summary>
-    private async Task<string> NextCodeAsync(Guid projectId, CancellationToken cancellationToken)
+    private async Task<string> NextCodeAsync(ProjectTask task, CancellationToken cancellationToken)
     {
+        // تسلسل المشروع T-n، وتسلسل الدفتر الشخصيّ P-n لكلّ مستخدمٍ على حدة.
+        var prefix = task.ProjectId is null ? PersonalPrefix : CodePrefix;
+        var owner = task.CreatedById;
+        var projectId = task.ProjectId;
+
         var sequence = await context.Tasks.AsNoTracking()
-            .Where(task => task.ProjectId == projectId && task.Code.StartsWith(CodePrefix))
-            .Select(task => (int?)Convert.ToInt32(task.Code.Substring(CodePrefix.Length)))
+            .Where(candidate => (projectId == null
+                                    ? candidate.ProjectId == null && candidate.CreatedById == owner
+                                    : candidate.ProjectId == projectId)
+                                && candidate.Code.StartsWith(prefix))
+            .Select(candidate => (int?)Convert.ToInt32(candidate.Code.Substring(prefix.Length)))
             .MaxAsync(cancellationToken) ?? 0;
 
-        return CodePrefix + (sequence + 1);
+        return prefix + (sequence + 1);
     }
 
     private async Task<decimal> NextPositionAsync(
-        Guid projectId,
+        Guid? projectId,
         Guid? parentTaskId,
         string status,
         CancellationToken cancellationToken)
     {
         var max = await context.Tasks.AsNoTracking()
-            .Where(task => task.ProjectId == projectId
+            .Where(task => (projectId == null ? task.ProjectId == null : task.ProjectId == projectId)
                            && task.ParentTaskId == parentTaskId
                            && task.Status == status)
             .Select(task => task.Position)
@@ -414,6 +484,14 @@ public sealed class TaskCommandService(
         if (!ProjectPriority.IsKnown(priority))
         {
             throw new DomainException(text["Task_UnknownPriority"], nameof(ProjectTask.Priority));
+        }
+    }
+
+    private void ValidateVisibility(string visibility)
+    {
+        if (!TaskVisibility.IsKnown(visibility))
+        {
+            throw new DomainException(text["Task_UnknownVisibility"], nameof(ProjectTask.Visibility));
         }
     }
 
@@ -451,11 +529,10 @@ public sealed class TaskCommandService(
         return string.IsNullOrWhiteSpace(description) ? null : description.Trim();
     }
 
-    private static Guid RequireProjectId(ProjectTask task) =>
-        task.ProjectId ?? throw new InvalidOperationException("Project tasks must belong to a project.");
-
     private static TaskCard ToCard(ProjectTask task) => new(
         task.Id,
+        task.ProjectId,
+        TaskVisibility.Read(task.Visibility),
         task.Code,
         task.Title,
         task.Description,

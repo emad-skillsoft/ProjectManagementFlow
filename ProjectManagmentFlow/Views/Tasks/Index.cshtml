@@ -1,10 +1,95 @@
+@model MyTasksViewModel
 @{
     ViewData["Title"] = T["Nav_MyTasks"].Value;
+    var filter = Context.Request.Query["filter"].ToString();
 }
 
-<section class="ds-permissions-page">
-    <header class="ds-permissions-page__header">
-        <h1>@T["Nav_MyTasks"]</h1>
-    </header>
-    <p class="text-muted">@T["Common_ComingSoon"]</p>
+<section class="ds-permissions-page ds-my-tasks">
+    <div class="d-flex align-items-center gap-3 flex-wrap mb-1">
+        <h1 class="mb-0 fs-4">@T["Nav_MyTasks"]</h1>
+
+        <nav class="ds-filter-chips" role="radiogroup" aria-label="@T["MyTasks_FilterLabel"]">
+            @foreach (var chip in Model.Filters)
+            {
+                <a class="ds-filter-chip" role="radio"
+                   aria-checked="@(chip.IsCurrent ? "true" : "false")"
+                   href="@chip.Href">@chip.Label</a>
+            }
+        </nav>
+
+        <button class="btn btn-primary ms-auto" type="button"
+                data-bs-toggle="modal" data-bs-target="#new-task">@T["MyTasks_NewTask"]</button>
+    </div>
+
+    <p class="text-body-secondary mb-3">@T["MyTasks_Subtitle"]</p>
+
+    @if (Model.Saved is { } saved)
+    {
+        <div class="ds-alert-accent ds-success-bg ds-success-border p-3 mb-3" role="status">@saved</div>
+    }
+    @if (Model.Error is { } error)
+    {
+        <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3 mb-3" role="alert">@error</div>
+    }
+
+    <div data-my-tasks>
+    @if (Model.Groups.Count == 0)
+    {
+        <div class="ds-empty-state">
+            <p class="mb-0">@T["MyTasks_Empty"]</p>
+        </div>
+    }
+
+    @foreach (var group in Model.Groups)
+    {
+        <section class="mb-4">
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                <h2 class="mb-0 fs-6">
+                    @if (group.Href is { } href)
+                    {
+                        <a class="ds-my-tasks-group__link" href="@href">@group.Title</a>
+                    }
+                    else
+                    {
+                        @group.Title
+                    }
+                </h2>
+                @if (group.IsPersonal)
+                {
+                    <span class="badge ds-badge-private">
+                        <span aria-hidden="true">&#128274;</span> @T["MyTasks_PrivateBadge"]
+                    </span>
+                }
+                <span class="text-body-secondary small">@group.CountLabel</span>
+            </div>
+
+            <div class="ds-surface p-0 overflow-hidden">
+                @if (group.Rows.Count == 0)
+                {
+                    <p class="text-body-secondary text-center mb-0 ds-my-tasks-empty">@T["MyTasks_NoneMatchFilter"]</p>
+                }
+                else
+                {
+                    foreach (var row in group.Rows)
+                    {
+                        <partial name="_MyTaskRow" model="row" />
+                    }
+                }
+            </div>
+        </section>
+    }
+
+    </div>
+
+    @* درج التفاصيل: الجزئيّة نفسها التي تخدم لوحة المشروع. *@
+    <aside class="offcanvas offcanvas-end ds-task-drawer" tabindex="-1"
+           id="task-drawer" aria-label="@T["TaskDetail_Log"]" data-task-drawer>
+        <div class="offcanvas-body" data-task-drawer-body></div>
+    </aside>
+
+    <partial name="_MyTaskModal" model="Model.NewTask" />
 </section>
+
+@section Scripts {
+    <script src="~/js/mytasks.js" asp-append-version="true"></script>
+}

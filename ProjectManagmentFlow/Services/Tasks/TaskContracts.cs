@@ -5,6 +5,8 @@ namespace ProjectManagmentFlow.Services.Tasks;
 
 public sealed record TaskCard(
     Guid Id,
+    Guid? ProjectId,
+    string Visibility,
     string Code,
     string Title,
     string? Description,
@@ -24,6 +26,16 @@ public sealed record BoardColumn(string Status, IReadOnlyList<TaskCard> Cards);
 public sealed record BoardPermissions(bool ManagesBoard, Guid ActorId)
 {
     public bool CanMove(TaskCard card) => ManagesBoard || card.AssigneeId == ActorId;
+
+    /// <summary>
+    /// المهمّة «الخاصّة» داخل مشروع تظهر لمنشئها والمسنَد إليه ومن يدير اللوحة فقط.
+    /// تُطبَّق في الخدمة لا في العرض: بطاقةٌ لا تُرى يجب ألّا تُرسَل أصلاً.
+    /// </summary>
+    public bool CanSee(TaskCard card) =>
+        card.Visibility != TaskVisibility.Private
+        || ManagesBoard
+        || card.AssigneeId == ActorId
+        || card.CreatedById == ActorId;
     public bool CanSubtask(TaskCard card) => ManagesBoard || card.AssigneeId == ActorId;
     public bool CanCreate => ManagesBoard;
 
@@ -72,7 +84,8 @@ public sealed record TaskActivityRecord(
 
 public sealed record TaskDetail(
     Guid Id,
-    Guid ProjectId,
+    /// <summary>فارغ للمهمّة الشخصية: لا مشروع تتبعه.</summary>
+    Guid? ProjectId,
     string Code,
     string Title,
     string? Description,
@@ -92,6 +105,34 @@ public sealed record TaskCreateInput(
     string Title,
     Guid? AssigneeId,
     string Status,
+    string Priority,
+    DateOnly? DueDate,
+    string? Description = null,
+    string Visibility = TaskVisibility.Project);
+
+/// <summary>مشروعٌ يملك الفاعل فيه صلاحيّة إنشاء مهمّة فريق، ومن يجوز إسنادها إليه.</summary>
+public sealed record TeamTaskTarget(
+    Guid ProjectId,
+    string ProjectName,
+    IReadOnlyList<TeamTaskAssignee> Members);
+
+public sealed record TeamTaskAssignee(Guid UserId, string Name);
+
+/// <summary>مجموعةٌ في «مهامي»: مشروعٌ واحد، أو المهامّ الشخصية.</summary>
+public sealed record MyTaskGroup(
+    Guid? ProjectId,
+    string Title,
+    bool IsPersonal,
+    IReadOnlyList<TaskCard> Cards);
+
+/// <summary>
+/// المجموعات كلّها بلا ترشيح. الترشيح في طبقة العرض عمداً: العنوان يذكر
+/// «س من ص»، فترشيحها هنا يُفقد المقام.
+/// </summary>
+public sealed record MyTasksView(IReadOnlyList<MyTaskGroup> Groups);
+
+public sealed record PersonalTaskInput(
+    string Title,
     string Priority,
     DateOnly? DueDate,
     string? Description = null);

@@ -46,7 +46,8 @@ public sealed class ProjectBoardViewModel
 
 public sealed class TaskDetailsViewModel
 {
-    public required ProjectHeaderViewModel Header { get; init; }
+    /// <summary>فارغة للمهمّة الشخصية: لا مشروع لها ترويسة تخصّه.</summary>
+    public ProjectHeaderViewModel? Header { get; init; }
     public required TaskDetail Task { get; init; }
     public required BoardPermissions Permissions { get; init; }
     public List<TaskOptionViewModel> Statuses { get; init; } = [];

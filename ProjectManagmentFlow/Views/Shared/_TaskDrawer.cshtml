@@ -2,7 +2,10 @@
 @using ProjectManagmentFlow.Localization
 @{
     var task = Model.Task;
-    var basePath = $"/projects/{task.ProjectId}/tasks/{task.Id}";
+    // المهمّة الشخصية لا مشروع في مسارها؛ الدرج نفسه يخدم الحالتين.
+    var basePath = task.ProjectId is { } projectId
+        ? $"/projects/{projectId}/tasks/{task.Id}"
+        : $"/Tasks/{task.Id}";
     var canMove = Model.Permissions.ManagesBoard || task.AssigneeId == Model.Permissions.ActorId;
     var done = task.Subtasks.Count(subtask => subtask.Status == TaskState.Done);
     var percent = task.Subtasks.Count == 0 ? 0 : done * 100 / task.Subtasks.Count;
@@ -75,7 +78,8 @@
 
     <div>
         <span class="ds-task-drawer__label">@T["TaskDetail_Assignee"]</span>
-        @if (Model.Permissions.ManagesBoard)
+        @* المهمّة الشخصية لا تُسنَد إلى غير صاحبها، فمبدّلها يعرض قائمةً فارغة. *@
+        @if (Model.Permissions.ManagesBoard && task.ProjectId is not null)
         {
             <form method="post" action="@basePath/assign" data-drawer-form>
                 @Html.AntiForgeryToken()

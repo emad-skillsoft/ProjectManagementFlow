@@ -1,0 +1,61 @@
+@model MyTaskRowViewModel
+@{
+    var filter = Context.Request.Query["filter"].ToString();
+}
+
+<div class="ds-task-row @(Model.IsComplete ? "is-complete" : null)">
+    @* الحالة تُبدَّل من مكانها: الصفّ قائمةُ عملٍ لا عرضاً. *@
+    <form method="post" action="/Tasks/status" class="ds-task-row__status">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="taskId" value="@Model.Id" />
+        <input type="hidden" name="filter" value="@filter" />
+        <label class="ds-visually-clipped" for="status-@Model.Id">
+            @T["MyTasks_StatusOf", Model.Title]
+        </label>
+        <select class="ds-select ds-select--sm" id="status-@Model.Id" name="status"
+                onchange="this.form.requestSubmit()">
+            @foreach (var option in Model.Statuses)
+            {
+                <option value="@option.Value" selected="@option.IsSelected">@option.Label</option>
+            }
+        </select>
+        <noscript>
+            <button class="btn btn-sm btn-outline-primary" type="submit">@T["TaskForm_Add"]</button>
+        </noscript>
+    </form>
+
+    <span class="ds-task-row__title">
+        @if (Model.Href is { } href)
+        {
+            <a href="@href">@Model.Title</a>
+        }
+        else
+        {
+            @Model.Title
+        }
+    </span>
+
+    <span class="@Model.PriorityClass">@Model.PriorityLabel</span>
+
+    <span class="ds-task-row__due @(Model.IsOverdue ? "is-late" : null)">
+        @if (Model.DueLabel is { } due)
+        {
+            <span class="ds-visually-clipped">@(Model.IsOverdue ? T["TaskCard_Overdue"] : T["TaskCard_Due"])</span>
+            <bdi class="ds-bidi-isolate" dir="ltr">@due</bdi>
+        }
+        else
+        {
+            <span aria-hidden="true">&#8212;</span>
+        }
+    </span>
+
+    @* التعليقات لم تُبنَ بعد؛ العدّاد هنا للمهامّ الفرعيّة. *@
+    <span class="ds-task-row__comments" title="@T["TaskCard_Subtasks"]">
+        <span class="ds-visually-clipped">@T["TaskCard_Subtasks"]</span>
+        <span aria-hidden="true">&#9776;</span><bdi dir="ltr">@Model.Subtasks</bdi>
+    </span>
+
+    <span class="ds-task-row__meta">
+        <bdi class="ds-bidi-isolate" dir="ltr">@Model.Code</bdi>
+    </span>
+</div>

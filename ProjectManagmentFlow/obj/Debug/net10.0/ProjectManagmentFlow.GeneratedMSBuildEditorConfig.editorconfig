@@ -55,10 +55,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdEJvYXJkL1Rhc2tEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/ProjectBoard/_TaskDrawer.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdEJvYXJkL19UYXNrRHJhd2VyLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Projects/Activity.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdHMvQWN0aXZpdHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -123,6 +119,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_MyTaskModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19NeVRhc2tNb2RhbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_MyTaskRow.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19NeVRhc2tSb3cuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_NewTaskModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19OZXdUYXNrTW9kYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -149,6 +153,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_TaskCard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19UYXNrQ2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_TaskDrawer.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19UYXNrRHJhd2VyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/omar/Desktop/projects/finalProject/ProjectManagementFlow/ProjectManagmentFlow/Views/Shared/_UnitScopeSwitch.cshtml]

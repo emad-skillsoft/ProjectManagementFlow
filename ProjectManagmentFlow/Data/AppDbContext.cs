@@ -203,6 +203,7 @@ public class AppDbContext : DbContext
             entity.Property(t => t.Description).HasMaxLength(4000);
             entity.Property(t => t.Status).HasMaxLength(32).IsRequired();
             entity.Property(t => t.Priority).HasMaxLength(32).IsRequired();
+            entity.Property(t => t.Visibility).HasMaxLength(32);
             entity.Property(t => t.EstimateHours).HasPrecision(9, 2);
             entity.Property(t => t.Position).HasPrecision(18, 6);
 
@@ -218,12 +219,25 @@ public class AppDbContext : DbContext
             entity.HasIndex(t => new { t.ProjectId, t.Status, t.Position });
             entity.HasIndex(t => new { t.AssigneeId, t.Status });
 
+            // المهمّة الشخصية خارج فهرس رمز المشروع (المرشَّح على ProjectId IS NOT NULL)،
+            // فتسلسلها يُفرَّد بمنشئها — وإلّا اصطدم P-1 لمستخدمٍ بـ P-1 لآخر.
+            entity.HasIndex(t => new { t.CreatedById, t.Code })
+                .IsUnique()
+                .HasFilter("[ProjectId] IS NULL")
+                .HasDatabaseName("UX_Task_PersonalCode");
+            entity.HasIndex(t => new { t.CreatedById, t.ProjectId, t.Status });
+
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Task_Status",
                     "[Status] IN ('todo', 'in_progress', 'in_review', 'done', 'cancelled')");
                 t.HasCheckConstraint("CK_Task_Priority",
                     "[Priority] IN ('low', 'normal', 'high', 'urgent')");
+                t.HasCheckConstraint("CK_Task_Visibility",
+                    "[Visibility] IS NULL OR [Visibility] IN ('project', 'private')");
+                // المهمّة بلا مشروع لا فريق لها تظهر له؛ فخصوصيّتها ليست خياراً.
+                t.HasCheckConstraint("CK_Task_PersonalIsPrivate",
+                    "[ProjectId] IS NOT NULL OR [Visibility] = 'private'");
             });
         });
     }

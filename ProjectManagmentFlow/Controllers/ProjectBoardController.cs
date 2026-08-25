@@ -135,7 +135,8 @@ public sealed class ProjectBoardController(
             Priorities = Priorities(task.Priority),
             Members = People(members),
             MaySubtask = permissions.CanSubtask(new TaskCard(
-                task.Id, task.Code, task.Title, task.Description, task.Status, task.Priority,
+                task.Id, task.ProjectId, TaskVisibility.Project,
+                task.Code, task.Title, task.Description, task.Status, task.Priority,
                 task.AssigneeId, task.AssigneeName, task.CreatedById,
                 task.DueDate, task.IsOverdue, 0, 0, 0m)),
             MayEdit = permissions.CanEdit(task),

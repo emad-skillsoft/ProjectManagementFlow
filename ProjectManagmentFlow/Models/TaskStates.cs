@@ -13,3 +13,20 @@ public static class TaskState
 
     public static bool IsKnown(string? value) => value is not null && All.Contains(value);
 }
+
+/// <summary>
+/// مدى رؤية المهمّة. «خاصّة» يقصرها على منشئها والمسنَد إليه ومن يدير اللوحة،
+/// فلا تظهر لبقيّة الفريق. المهمّة بلا مشروع خاصّة إلزاماً — يحرسه قيدٌ في القاعدة.
+/// </summary>
+public static class TaskVisibility
+{
+    public const string Project = "project";
+    public const string Private = "private";
+
+    public static readonly string[] All = [Project, Private];
+
+    public static bool IsKnown(string? value) => value is not null && All.Contains(value);
+
+    /// <summary>القيمة المخزّنة قبل هذه الميزة فارغة؛ تُقرأ «على مستوى المشروع».</summary>
+    public static string Read(string? stored) => stored == Private ? Private : Project;
+}
