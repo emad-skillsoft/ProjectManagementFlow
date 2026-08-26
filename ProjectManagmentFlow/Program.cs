@@ -110,6 +110,7 @@ builder.Services.AddScoped<IOrganizationQueryService, OrganizationQueryService>(
 builder.Services.AddScoped<IOrganizationCommandService, OrganizationCommandService>();
 builder.Services.AddScoped<IOrganizationMemberQueryService, OrganizationMemberQueryService>();
 builder.Services.AddScoped<IOrganizationMemberCommandService, OrganizationMemberCommandService>();
+builder.Services.AddScoped<IOrgWorkspaceService, OrgWorkspaceService>();
 
 // projects
 builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();

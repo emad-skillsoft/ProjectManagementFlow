@@ -1,0 +1,156 @@
+@model OrgMembersViewModel
+@{
+    var unit = Model.Header.Id;
+}
+
+<section class="ds-permissions-page ds-page-narrow">
+    <partial name="_OrgHeader" model="Model.Header" />
+
+    @if (Model.Saved is { } saved)
+    {
+        <div class="ds-alert-accent ds-success-bg ds-success-border p-3 mb-3" role="status">@saved</div>
+    }
+    @if (Model.Error is { } error)
+    {
+        <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3 mb-3" role="alert">@error</div>
+    }
+
+    <div class="ds-table-toolbar mb-3">
+        <form method="get" action="/Organization/Members" class="d-flex align-items-center gap-2 flex-grow-1">
+            <input type="hidden" name="unit" value="@unit" />
+            <label class="ds-visually-clipped" for="member-search">@T["OrgView_SearchMembers"]</label>
+            <input class="form-control" id="member-search" name="search" type="search"
+                   value="@Model.Search" placeholder="@T["OrgView_SearchMembers"]" style="max-inline-size: 22rem;" />
+            <span class="text-body-secondary small">@Model.CountLabel</span>
+            <noscript><button class="btn btn-sm btn-outline-primary" type="submit">@T["Common_Search"]</button></noscript>
+        </form>
+
+        @if (Model.CanManage)
+        {
+            <button class="btn btn-primary" type="button"
+                    data-bs-toggle="modal" data-bs-target="#invite-member">@T["OrgView_InviteMember"]</button>
+        }
+    </div>
+
+    <div class="ds-surface p-0 overflow-hidden">
+        <div class="ds-file-table__scroll">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">@T["OrgView_ColMember"]</th>
+                    <th scope="col">@T["OrgView_ColUnit"]</th>
+                    <th scope="col">@T["OrgView_ColRole"]</th>
+                    <th scope="col">@T["OrgView_ColStatus"]</th>
+                    <th scope="col">@T["OrgView_ColActions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-body-secondary py-4">@T["OrgView_NoMembers"]</td>
+                    </tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td>
+                            <span class="d-flex align-items-center gap-2">
+                                <span class="ds-avatar" aria-hidden="true">@row.Initials</span>
+                                <span class="d-grid">
+                                    <strong>@row.Name</strong>
+                                    <bdi class="text-body-secondary small" dir="ltr">@row.Email</bdi>
+                                    @if (row.PlatformRoles.Count > 0)
+                                    {
+                                        <span class="small text-body-secondary">
+                                            @T["OrgView_PlatformRoles"]:
+                                            @string.Join("، ", row.PlatformRoles)
+                                        </span>
+                                    }
+                                </span>
+                            </span>
+                        </td>
+                        <td>@row.UnitName</td>
+                        <td>
+                            @if (Model.CanManage && row.MayAct && row.Role != OrgMemberRoles.Owner)
+                            {
+                                <form method="post" action="/Organization/Members/role">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="unit" value="@unit" />
+                                    <input type="hidden" name="userId" value="@row.UserId" />
+                                    <input type="hidden" name="memberUnit" value="@row.UnitId" />
+                                    <label class="ds-visually-clipped" for="role-@row.UserId">@T["OrgView_ColRole"]</label>
+                                    <select class="ds-select ds-select--sm" id="role-@row.UserId" name="role"
+                                            onchange="this.form.requestSubmit()">
+                                        @foreach (var option in Model.Roles)
+                                        {
+                                            <option value="@option.Value" selected="@(option.Value == row.Role)">@option.Label</option>
+                                        }
+                                    </select>
+                                    <noscript><button class="btn btn-sm btn-outline-primary" type="submit">@T["Common_Save"]</button></noscript>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="@row.RoleClass">@row.RoleLabel</span>
+                            }
+
+                        </td>
+                        <td>
+                            <span class="badge text-bg-light d-inline-flex align-items-center gap-1">
+                                <span class="ds-status-dot @row.StatusDot" aria-hidden="true"></span>@row.StatusLabel
+                            </span>
+                        </td>
+                        <td>
+                            @if (row.MayAct || Model.CanEditPlatformRoles)
+                            {
+                                <span class="d-flex gap-2 flex-wrap">
+                                    @if (Model.CanEditPlatformRoles)
+                                    {
+                                        @* أدوار المنصّة غير دور المنظّمة: تلك صلاحيّات النظام وهذا موقعه في الإدارة. *@
+                                        <a class="btn btn-sm btn-outline-secondary"
+                                           href="/Organization/Members/@row.UserId/roles?unit=@unit">@T["OrgView_PlatformRoles"]</a>
+                                    }
+                                    @if (row.MayAct)
+                                    {
+                                    <form method="post" action="/Organization/Members/@(row.IsSuspended ? "restore" : "suspend")">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="unit" value="@unit" />
+                                        <input type="hidden" name="userId" value="@row.UserId" />
+                                        <input type="hidden" name="memberUnit" value="@row.UnitId" />
+                                        <button class="btn btn-sm btn-outline-warning" type="submit">
+                                            @(row.IsSuspended ? T["OrgView_Restore"] : T["OrgView_Suspend"])
+                                        </button>
+                                    </form>
+                                    <form method="post" action="/Organization/Members/remove"
+                                          data-confirm="@T["OrgView_ConfirmRemove", row.Name]">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="unit" value="@unit" />
+                                        <input type="hidden" name="userId" value="@row.UserId" />
+                                        <input type="hidden" name="memberUnit" value="@row.UnitId" />
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">@T["OrgView_Remove"]</button>
+                                    </form>
+                                    }
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-body-secondary small" aria-hidden="true">&#8212;</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    @if (Model.CanManage)
+    {
+        <partial name="_OrgInviteModal" model="Model" />
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/org.js" asp-append-version="true"></script>
+}

@@ -124,7 +124,8 @@ public class AppDbContext : DbContext
 
             entity.ToTable(t =>
             {
-                t.HasCheckConstraint("CK_OrgMember_Status", "[Status] IN ('pending', 'active')");
+                t.HasCheckConstraint("CK_OrgMember_Status",
+                    "[Status] IN ('pending', 'active', 'suspended')");
                 t.HasCheckConstraint("CK_OrgMember_Role", "[Role] IN ('owner', 'admin', 'member')");
             });
         });

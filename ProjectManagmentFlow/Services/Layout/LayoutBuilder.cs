@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using ProjectManagmentFlow.Authorization;
+using ProjectManagmentFlow.Services.Organizations;
 using ProjectManagmentFlow.Services.Permissions;
 using ProjectManagmentFlow.Services.Users;
 using ProjectManagmentFlow.ViewModels;
@@ -14,17 +15,20 @@ public class LayoutBuilder
     private readonly IStringLocalizer<Messages> _text;
     private readonly IHttpContextAccessor _http;
     private readonly IUserRoleQueryService _userRoles;
+    private readonly IOrgWorkspaceService _workspace;
 
     public LayoutBuilder(
         IPermissionService permissions,
         IStringLocalizer<Messages> text,
         IHttpContextAccessor http,
-        IUserRoleQueryService userRoles)
+        IUserRoleQueryService userRoles,
+        IOrgWorkspaceService workspace)
     {
         _permissions = permissions;
         _text = text;
         _http = http;
         _userRoles = userRoles;
+        _workspace = workspace;
     }
 
     public async Task<LayoutViewModel> BuildAsync(CancellationToken cancellationToken = default)
@@ -47,7 +51,13 @@ public class LayoutBuilder
         };
 
         var path = _http.HttpContext?.Request?.Path.Value ?? string.Empty;
-        model.Header.Items = BuildPrimaryNavigation(path);
+        var actorId = Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
+            ? id
+            : Guid.Empty;
+        var managesOrg = await _workspace.ManagesAnyAsync(
+            actorId, _permissions.HasPermission(PermissionNames.UsersEdit), cancellationToken);
+
+        model.Header.Items = BuildPrimaryNavigation(path, managesOrg);
 
         return model;
     }
@@ -79,7 +89,7 @@ public class LayoutBuilder
             : DisplayNames.Role(_text, role.Name, role.NameEn, role.IsSystem);
     }
 
-    private IReadOnlyList<NavigationItemViewModel> BuildPrimaryNavigation(string path)
+    private IReadOnlyList<NavigationItemViewModel> BuildPrimaryNavigation(string path, bool managesOrg)
     {
         var items = new List<NavigationItemViewModel>
         {
@@ -92,11 +102,15 @@ public class LayoutBuilder
         };
 
         Add(items, PermissionNames.OrganizationsView, "Nav_Organizations", "/Organizations", path);
+        // «المنظّمة» مساحة إدارةٍ لا صفحة اطّلاع: تظهر لمن يملك فيها قراراً.
+        if (managesOrg)
+        {
+            Add(items, PermissionNames.OrganizationsView, "Nav_Organization", "/Organization", path);
+        }
         Add(items, PermissionNames.ProjectsView,      "Nav_Projects",      "/Projects",      path);
         Add(items, PermissionNames.TasksView,         "Nav_MyTasks",       "/Tasks",         path);
         Add(items, PermissionNames.TeamsView,         "Nav_Teams",         "/Teams",         path);
         Add(items, PermissionNames.RolesView,         "Nav_Permissions",   "/Roles",         path);
-        Add(items, PermissionNames.UsersView,         "Nav_Users",         "/Users",         path);
 
         return items;
     }

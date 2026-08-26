@@ -76,6 +76,34 @@ public class OrganizationMemberCommandService : IOrganizationMemberCommandServic
         return true;
     }
 
+    public async Task<bool> SuspendAsync(
+        Guid organizationId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var member = await FindAsync(organizationId, userId, cancellationToken);
+        if (member is null || member.Status == OrgMemberStatus.Suspended) return false;
+
+        if (IsActiveOwner(member))
+        {
+            await RequireAnotherOwnerAsync(organizationId, userId, cancellationToken);
+        }
+
+        member.Status = OrgMemberStatus.Suspended;
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RestoreAsync(
+        Guid organizationId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var member = await FindAsync(organizationId, userId, cancellationToken);
+        if (member is null || member.Status != OrgMemberStatus.Suspended) return false;
+
+        // الموقوف يعود فعّالاً لا معلّقاً: دعوته قُبلت يوم انضمّ.
+        member.Status = OrgMemberStatus.Active;
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<bool> RemoveAsync(
         Guid organizationId, Guid userId, CancellationToken cancellationToken = default)
     {

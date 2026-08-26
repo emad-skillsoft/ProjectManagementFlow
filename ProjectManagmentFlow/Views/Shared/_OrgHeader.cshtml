@@ -1,0 +1,64 @@
+@model OrgHeaderViewModel
+
+@*
+    هويّة المنظّمة ومبدّلها وتبويباتها. المبدّل يبقيك في التبويب نفسه،
+    فالانتقال من «أعضاء الأمّ» يقع على «أعضاء التابعة» لا على لوحتها.
+*@
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        @if (Model.CanSwitch)
+        {
+            <div class="dropdown">
+                <button class="ds-org-view-switch" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" aria-label="@Model.SwitchHint">
+                    <span class="ds-avatar" aria-hidden="true">@Model.Initials</span>
+                    <span class="ds-org-view-switch__meta">
+                        <strong>@Model.Name</strong>
+                        <small>@Model.Subtitle</small>
+                    </span>
+                    <span aria-hidden="true">&#9662;</span>
+                </button>
+
+                <ul class="dropdown-menu">
+                    @foreach (var target in Model.Targets)
+                    {
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 @(target.IsCurrent ? "active" : null)"
+                               href="@target.Href" aria-current="@(target.IsCurrent ? "true" : null)">
+                                <span class="ds-avatar ds-avatar-sm" aria-hidden="true">@target.Initials</span>
+                                <span class="d-grid">
+                                    <strong>@target.Name</strong>
+                                    <small class="text-body-secondary">@target.Meta</small>
+                                </span>
+                            </a>
+                        </li>
+                    }
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><p class="dropdown-item-text small text-body-secondary mb-0">@Model.SwitchHint</p></li>
+                </ul>
+            </div>
+        }
+        else
+        {
+            <span class="ds-org-view-switch">
+                <span class="ds-avatar" aria-hidden="true">@Model.Initials</span>
+                <span class="ds-org-view-switch__meta">
+                    <strong>@Model.Name</strong>
+                    <small>@Model.Subtitle</small>
+                </span>
+            </span>
+        }
+
+        <span class="badge ds-badge-lead d-inline-flex align-items-center gap-1">
+            <span class="ds-status-dot ds-status-dot--success" aria-hidden="true"></span>@Model.StatusLabel
+        </span>
+    </div>
+
+    <nav class="ds-segmented w-auto" aria-label="@Model.Name">
+        @foreach (var tab in Model.Tabs)
+        {
+            <a class="ds-segmented-button @(tab.IsCurrent ? "is-active" : null)"
+               href="@tab.Href" aria-current="@(tab.IsCurrent ? "page" : null)">@tab.Label</a>
+        }
+    </nav>
+</div>

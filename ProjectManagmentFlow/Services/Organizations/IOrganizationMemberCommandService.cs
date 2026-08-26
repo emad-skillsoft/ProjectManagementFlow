@@ -15,6 +15,17 @@ public interface IOrganizationMemberCommandService
     /// <summary>المدعوّ يرفض دعوته هو، فيُحذف الصفّ.</summary>
     Task<bool> DenyInviteAsync(Guid organizationId, Guid userId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// يوقف عضواً: يبقى صفّه وتاريخه ولا يصل إلى شيء. يُرفض على المالك الأخير
+    /// كما تُرفض إزالته — منظّمةٌ بلا مالكٍ فعّال لا تُدار.
+    /// </summary>
+    Task<bool> SuspendAsync(
+        Guid organizationId, Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>يعيد الموقوف إلى الفعّاليّة.</summary>
+    Task<bool> RestoreAsync(
+        Guid organizationId, Guid userId, CancellationToken cancellationToken = default);
+
     /// <summary>يُخرج عضواً. يُرفض على المالك الأخير.</summary>
     Task<bool> RemoveAsync(Guid organizationId, Guid userId, CancellationToken cancellationToken = default);
 

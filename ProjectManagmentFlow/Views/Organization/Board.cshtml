@@ -1,0 +1,81 @@
+@model OrgBoardViewModel
+
+<section class="ds-permissions-page ds-page-narrow">
+    <partial name="_OrgHeader" model="Model.Header" />
+
+    <div class="ds-stats-grid mb-4">
+        @foreach (var stat in Model.Stats)
+        {
+            <article class="ds-stat-card @stat.CssClass">
+                <strong class="ds-stat-card__value">@stat.Value</strong>
+                <span class="ds-stat-card__label">@stat.Label</span>
+            </article>
+        }
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-7">
+            <section class="ds-surface h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 class="ds-surface__title mb-0">@T["OrgView_RecentActivity"]</h2>
+                </div>
+
+                @if (Model.Activity.Count == 0)
+                {
+                    <p class="text-body-secondary mb-0">@T["OrgView_NoActivity"]</p>
+                }
+                else
+                {
+                    <ol class="ds-timeline ds-timeline--compact">
+                        @foreach (var entry in Model.Activity)
+                        {
+                            <li class="ds-timeline-item">
+                                <span class="ds-timeline-dot @entry.Accent" aria-hidden="true"></span>
+                                <div class="ds-timeline-body">
+                                    <p class="ds-timeline-title mb-0">@entry.Text</p>
+                                    <span class="ds-timeline-time">@entry.Time</span>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                }
+            </section>
+        </div>
+        <div class="col-12 col-lg-5">
+            <section class="ds-surface h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 class="ds-surface__title mb-0">@T["OrgView_RecentProjects"]</h2>
+                    <a href="@Model.ProjectsHref">@T["OrgView_SeeAll"] &#8592;</a>
+                </div>
+
+                @if (Model.Projects.Count == 0)
+                {
+                    <p class="text-body-secondary mb-0">@T["OrgView_NoProjects"]</p>
+                }
+                else
+                {
+                    <div class="d-grid gap-2">
+                        @foreach (var project in Model.Projects)
+                        {
+                            <a class="ds-surface p-3 text-decoration-none" href="@project.Href">
+                                <span class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge text-bg-light"><bdi dir="ltr">@project.Code</bdi></span>
+                                    <strong>@project.Name</strong>
+                                </span>
+                                <span class="d-flex align-items-center gap-2">
+                                    <span class="ds-progress flex-grow-1" role="progressbar"
+                                          aria-label="@project.Name" aria-valuenow="@project.Percent"
+                                          aria-valuemin="0" aria-valuemax="100">
+                                        <span class="ds-progress-bar" style="--ds-progress-value:@(project.Percent)%"></span>
+                                    </span>
+                                    <bdi class="text-body-secondary small" dir="ltr">@project.ProgressLabel</bdi>
+                                </span>
+                            </a>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+
+    </div>
+</section>

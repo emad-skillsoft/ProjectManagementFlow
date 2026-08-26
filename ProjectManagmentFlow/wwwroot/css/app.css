@@ -114,6 +114,14 @@ h2.ds-role-panel__title {
 :root {
     --dga-shell-max: 112rem;
     --ds-content-max: var(--dga-shell-max);
+
+    /* القشرة تمتدّ والمحتوى لا: الترويسة تحمل الشعار والحساب إلى الحافّتين،
+       أمّا الصفحات فسطورٌ وبطاقاتٌ تُقرأ — وامتدادها إلى مترٍ من الشاشة يُبعثرها. */
+    --ds-page-max: 75rem;
+}
+
+.ds-page-narrow {
+    max-inline-size: var(--ds-page-max);
 }
 
 .dga-layout-container {
@@ -393,7 +401,7 @@ h2.ds-role-panel__title {
    يفتح فراغاً بين العنوان وبقيّة الحقول يتّسع كلّما اتّسعت الشاشة. القيد يشمل
    الترويسة والشرائح معاً كي تبقى حوافّها على حافّة البطاقات. */
 .ds-my-tasks {
-  max-inline-size: 72rem;
+  max-inline-size: var(--ds-page-max);
 }
 
 /* صفّ «مهامي» على الشاشات العريضة.
@@ -483,4 +491,22 @@ a.ds-filter-chip,
 a.ds-filter-chip:hover,
 a.ds-filter-chip:focus {
   text-decoration: none;
+}
+
+/* زرٌّ داخل d-grid يتمدّد بعرض الشبكة. بوتستراب لا يشحن أداة justify-self،
+   فكانت الأزرار تُكتب بصنفٍ لا وجود له وتتمدّد صامتةً. */
+.ds-self-start {
+  justify-self: start;
+}
+
+/* بطاقة المؤشّر: القيمة والتسمية عنصران سطريّان في الترقيم، فيقعان على سطرٍ
+   واحد بينما الثيم يفترضهما مكدّسين (ولذلك أعطى التسمية margin-block-start). */
+.ds-stat-card {
+  display: grid;
+}
+
+/* إعدادات المنظّمة: بطاقتان في عمودٍ واحد عند حافّة البداية. نموذجٌ من حقلين
+   لا يستحقّ عرض الصفحة، وتمديده يباعد بين التسمية وحقلها. */
+.ds-org-settings {
+  max-inline-size: 44rem;
 }

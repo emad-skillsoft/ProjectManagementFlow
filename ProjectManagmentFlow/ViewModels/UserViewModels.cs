@@ -14,6 +14,10 @@ public class UserListItemViewModel
 public class UserRolesViewModel
 {
     public Guid UserId { get; set; }
+
+    /// <summary>المنظّمة التي فُتحت منها الشاشة — للعودة إلى جدول أعضائها.</summary>
+    public Guid OrganizationId { get; set; }
+
     public string DisplayName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public bool IsSelf { get; set; }

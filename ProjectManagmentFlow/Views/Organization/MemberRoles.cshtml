@@ -4,7 +4,7 @@
     ViewData["Title"] = T["UserRoles_Title", Model.DisplayName].Value;
 }
 
-<section class="ds-permissions-page">
+<section class="ds-permissions-page ds-page-narrow">
     <header class="ds-permissions-page__header">
         <h1>@ViewData["Title"]</h1>
     </header>
@@ -17,7 +17,8 @@
         <div class="alert alert-warning">@T["UserRoles_SelfWarning"]</div>
     }
 
-    <form asp-action="Roles" asp-route-id="@Model.UserId" method="post">
+    <form method="post" action="/Organization/Members/@Model.UserId/roles?unit=@Model.OrganizationId">
+        @Html.AntiForgeryToken()
         <div class="list-group mb-3">
             @foreach (var role in Model.Roles)
             {
@@ -36,6 +37,6 @@
         {
             <button type="submit" class="btn btn-primary">@T["UserRoles_Save"]</button>
         }
-        <a class="btn btn-link" asp-action="Index">@T["Common_Back"]</a>
+        <a class="btn btn-link" href="/Organization/Members?unit=@Model.OrganizationId">@T["Common_Back"]</a>
     </form>
 </section>

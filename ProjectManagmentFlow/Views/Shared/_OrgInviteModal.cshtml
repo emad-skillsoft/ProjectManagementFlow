@@ -1,0 +1,59 @@
+@model OrgMembersViewModel
+
+@*
+    الدعوة تختار من المستخدمين القائمين: إنشاء المستخدمين بابٌ آخر
+    في صفحة الهيكل، فلا يُفتح هنا بابٌ ثانٍ له.
+*@
+<div class="modal fade" id="invite-member" tabindex="-1" aria-labelledby="invite-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/Organization/Members/invite">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="unit" value="@Model.Header.Id" />
+
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="invite-title">@T["OrgView_InviteTitle"]</h2>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal"
+                            aria-label="@T["Common_Close"]"></button>
+                </div>
+
+                <div class="modal-body d-grid gap-3">
+                    <p class="form-text mb-0">@T["OrgView_InviteHint"]</p>
+
+                    <div>
+                        <label class="form-label fw-semibold" for="invite-user">@T["OrgView_InviteUser"]</label>
+                        @if (Model.Candidates.Count == 0)
+                        {
+                            <p class="form-text mb-0">@T["OrgView_NoCandidates"]</p>
+                        }
+                        else
+                        {
+                            <select class="ds-select" id="invite-user" name="userId" required>
+                                @foreach (var candidate in Model.Candidates)
+                                {
+                                    <option value="@candidate.UserId">@candidate.Name — @candidate.Email</option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold" for="invite-role">@T["OrgView_ColRole"]</label>
+                        <select class="ds-select" id="invite-role" name="role">
+                            @foreach (var option in Model.Roles)
+                            {
+                                <option value="@option.Value" selected="@option.IsSelected">@option.Label</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit"
+                            disabled="@(Model.Candidates.Count == 0)">@T["OrgView_SendInvite"]</button>
+                    <button class="btn btn-link" type="button" data-bs-dismiss="modal">@T["Common_Cancel"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

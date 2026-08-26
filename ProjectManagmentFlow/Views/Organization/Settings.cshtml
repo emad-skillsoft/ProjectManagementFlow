@@ -1,0 +1,77 @@
+@model OrgSettingsViewModel
+
+<section class="ds-permissions-page ds-page-narrow">
+    <partial name="_OrgHeader" model="Model.Header" />
+
+    @if (Model.Saved is { } saved)
+    {
+        <div class="ds-alert-accent ds-success-bg ds-success-border p-3 mb-3" role="status">@saved</div>
+    }
+    @if (Model.Error is { } error)
+    {
+        <div class="ds-alert-accent ds-danger-bg ds-danger-border p-3 mb-3" role="alert">@error</div>
+    }
+
+    <div class="d-grid gap-3 ds-org-settings">
+        <div>
+            <section class="ds-surface">
+                <h2 class="ds-surface__title mb-3">@T["OrgView_Details"]</h2>
+
+                <form method="post" action="/Organization/Settings" class="d-grid gap-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="unit" value="@Model.Header.Id" />
+
+                    <div>
+                        <label class="form-label fw-semibold" for="org-name">@T["OrgView_Name"]</label>
+                        <input class="form-control" id="org-name" name="name" required maxlength="200"
+                               value="@Model.Name" disabled="@(!Model.CanGovern)" />
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold" for="org-description">@T["OrgView_Description"]</label>
+                        <textarea class="form-control" id="org-description" name="description" rows="3"
+                                  maxlength="1000" disabled="@(!Model.CanGovern)">@Model.Description</textarea>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" for="org-deputy">@T["OrgView_Deputy"]</label>
+                            <select class="ds-select" id="org-deputy" name="deputyId" disabled="@(!Model.CanGovern)">
+                                <option value="">@T["OrgView_NoDeputy"]</option>
+                                @foreach (var choice in Model.DeputyChoices)
+                                {
+                                    <option value="@choice.UserId" selected="@(choice.UserId == Model.DeputyId)">@choice.Name</option>
+                                }
+                            </select>
+                            <p class="form-text mb-0">@T["OrgView_DeputyHint"]</p>
+                        </div>
+
+                        @* الرمز يُولَّد عند إنشاء المشروع؛ عرضُه هنا تعريفٌ لا إعداد. *@
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" for="org-code">@T["OrgView_CodeFormat"]</label>
+                            <input class="form-control" id="org-code" type="text" dir="ltr"
+                                   value="@Model.CodeFormat" readonly disabled />
+                            <p class="form-text mb-0">@T["OrgView_CodeFormatHint"]</p>
+                        </div>
+                    </div>
+
+                    @if (Model.CanGovern)
+                    {
+                        <button class="btn btn-primary ds-self-start" type="submit">@T["OrgView_SaveSettings"]</button>
+                    }
+                    else
+                    {
+                        <p class="form-text mb-0">@T["OrgView_ReadOnly"]</p>
+                    }
+                </form>
+            </section>
+        </div>
+
+        <div>
+            <section class="ds-surface">
+                <h2 class="ds-surface__title mb-2">@T["OrgView_Suspension"]</h2>
+                <p class="text-body-secondary mb-0">@T["OrgView_SuspensionHint"]</p>
+            </section>
+        </div>
+    </div>
+</section>
