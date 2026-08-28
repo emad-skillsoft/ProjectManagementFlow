@@ -1,0 +1,30 @@
+@model ProjectManagmentFlow.ViewModels.StructureUnitPanelViewModel
+
+<header class="ds-unit-header">
+    <div>
+        <div class="ds-unit-header__title">
+            <h1>@Model.Name</h1>
+            <partial name="_UnitTypeBadge" model="Model.Type" />
+        </div>
+        <div class="ds-unit-header__meta">
+            @if (Model.Code is { Length: > 0 })
+            {
+                <span>@T["Structure_Code"] <bdi dir="ltr">@Model.Code</bdi></span>
+            }
+            <span>@Model.LevelLabel</span>
+            <span>@T["Structure_DirectChildrenCount", Model.DirectChildren]</span>
+        </div>
+    </div>
+
+    @if (Model.MayManage)
+    {
+        <div class="ds-unit-header__actions">
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#structure-create">@T["Structure_CreateTitle"]</button>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#structure-move">@T["Structure_MoveTitle"]</button>
+            <button class="btn btn-outline-danger" type="button" data-bs-toggle="modal"
+                    data-bs-target="#structure-delete">@T["Structure_DeleteTitle"]</button>
+        </div>
+    }
+</header>

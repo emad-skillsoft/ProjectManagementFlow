@@ -1,0 +1,10 @@
+@model ProjectManagmentFlow.ViewModels.StructureMemberViewModel
+
+@* هويّة العضو في كتلةٍ واحدة: البريد بيانٌ تابعٌ للاسم لا عمودٌ مستقلّ. *@
+<span class="d-flex align-items-center gap-2">
+    <span class="ds-avatar" aria-hidden="true">@Model.Initials</span>
+    <span class="d-grid">
+        <strong>@Model.Name</strong>
+        <bdi class="text-body-secondary small" dir="ltr">@Model.Email</bdi>
+    </span>
+</span>

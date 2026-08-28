@@ -14,6 +14,15 @@ public class Organization
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
+    /// <summary>
+    /// نوع الوحدة — واحدٌ من OrgUnitTypes، يُختار عند الإنشاء.
+    /// رتبة الابن أكبر من رتبة الأب، والجذر organization إلزاماً.
+    /// </summary>
+    public string Type { get; set; } = OrgUnitTypes.Organization;
+
+    /// <summary>رمز مختصر، فريدٌ داخل المنظّمة (جذر الشجرة). قابلٌ لأن يكون فارغاً.</summary>
+    public string? Code { get; set; }
+
     public Guid? ParentId { get; set; }
     public Organization? Parent { get; set; }
 

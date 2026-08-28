@@ -44,7 +44,7 @@
         </form>
 
         @* بيانات الحسابات التجريبيّة للتطوير وحده — لا تُطبع في بيئة نشر. *@
-        @if (HostEnvironment.IsDevelopment())
+        @if (HostEnvironment.EnvironmentName == "Development")
         {
             <p class="text-body-secondary small mt-3 mb-0" lang="en" dir="ltr">
                 admin@example.com · user@example.com

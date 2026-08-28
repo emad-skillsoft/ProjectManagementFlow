@@ -83,30 +83,41 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Organization>(entity =>
-        {
-            entity.Property(o => o.Name).HasMaxLength(200).IsRequired();
-            entity.Property(o => o.Description).HasMaxLength(1000);
+                {
+                    entity.Property(o => o.Name).HasMaxLength(200).IsRequired();
+                    entity.Property(o => o.Description).HasMaxLength(1000);
+                    entity.Property(o => o.Type).HasMaxLength(32).IsRequired();
+                    entity.Property(o => o.Code).HasMaxLength(64);
 
-            entity.Property(o => o.Path).HasMaxLength(Organization.PathLength).IsRequired();
+                    entity.Property(o => o.Path).HasMaxLength(Organization.PathLength).IsRequired();
 
-           
-            entity.HasIndex(o => o.Path);
-            entity.HasIndex(o => new { o.RootId, o.Depth });
-            entity.HasIndex(o => o.ParentId);
+                   entity.HasIndex(o => o.Path);
+                    entity.HasIndex(o => new { o.RootId, o.Depth });
+                    entity.HasIndex(o => o.ParentId);
 
-            entity.HasOne(o => o.Parent)
-                .WithMany(o => o.Children)
-                .HasForeignKey(o => o.ParentId)
-                .OnDelete(DeleteBehavior.Restrict);
+                    // الرمز فريدٌ داخل الشجرة الواحدة. الفحص في الخدمة وحده
+                    // يترك نافذة سباق: طلبان متزامنان يمرّان معاً ثمّ يُدرجان.
+                    entity.HasIndex(o => new { o.RootId, o.Code })
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL")
+                        .HasDatabaseName("UX_Organization_Code");
 
-            entity.ToTable(t =>
-            {
-                t.HasCheckConstraint("CK_Organization_Depth",
-                    $"[Depth] BETWEEN 0 AND {Organization.MaxDepth}");
+                    entity.HasOne(o => o.Parent)
+                        .WithMany(o => o.Children)
+                        .HasForeignKey(o => o.ParentId)
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                t.HasCheckConstraint("CK_Organization_Root",
-                    "([ParentId] IS NULL AND [RootId] = [Id] AND [Depth] = 0) OR ([ParentId] IS NOT NULL AND [Depth] > 0)");
-            });
+                    entity.ToTable(t =>
+                    {
+                        t.HasCheckConstraint("CK_Organization_Depth",
+                            $"[Depth] BETWEEN 0 AND {Organization.MaxDepth}");
+
+                        t.HasCheckConstraint("CK_Organization_Root",
+                            "([ParentId] IS NULL AND [RootId] = [Id] AND [Depth] = 0) OR ([ParentId] IS NOT NULL AND [Depth] > 0)");
+
+                        t.HasCheckConstraint("CK_Organization_Type",
+                            "[Type] IN ('organization', 'sector', 'general_admin', 'admin', 'department', 'division')");
+                    });
         });
 
         modelBuilder.Entity<OrgMember>(entity =>

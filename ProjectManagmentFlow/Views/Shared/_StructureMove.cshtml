@@ -1,0 +1,76 @@
+@model ProjectManagmentFlow.ViewModels.StructureMoveDialogViewModel
+@{
+    var unit = Model.UnitId;
+    var allowedCount = Model.Targets.Count(t => t.IsAllowed);
+}
+
+<div class="modal fade" id="structure-move" tabindex="-1" aria-labelledby="structure-move-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="structure-move-title">@Model.Label</h2>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="@T["Common_Close"]"></button>
+            </div>
+            <div class="modal-body d-grid gap-3">
+                <p class="mb-0">@Model.Summary</p>
+
+                @if (Model.Targets.Count == 0)
+                {
+                    <p class="text-muted mb-0">@T["OrgMove_NoTargets"]</p>
+                }
+                else
+                {
+                    <div class="ds-unit-picker" role="radiogroup" aria-label="@Model.Label">
+                        @foreach (var target in Model.Targets)
+                        {
+                            <label class="ds-unit-picker__row @(target.IsAllowed ? "" : "is-blocked")"
+                                   data-structure-move-target data-target-id="@(target.TargetId?.ToString() ?? "root")"
+                                   data-allowed="@(target.IsAllowed ? "true" : "false")">
+                                <input class="btn-check" type="radio" name="targetParentId"
+                                       value="@(target.TargetId?.ToString() ?? "root")"
+                                       disabled="@(target.IsAllowed ? null : "")"
+                                       data-structure-move-input />
+                                <span class="ds-unit-picker__name">@target.Name</span>
+                                @if (target.Reason is { Length: > 0 })
+                                {
+                                    <span class="ds-unit-picker__reason" title="@target.Reason">@target.Reason</span>
+                                }
+                            </label>
+                        }
+                    </div>
+
+                    <div class="ds-unit-picker__summary" data-structure-move-impact>
+                        <strong>@Model.ImpactLabel</strong>
+                        <small>@T["Structure_MoveImpactDetail"]</small>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">@T["Common_Cancel"]</button>
+                <button class="btn btn-primary" type="submit"
+                        form="structure-move-form"
+                        disabled="@(allowedCount == 0 ? "" : null)">@Model.SubmitLabel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="structure-move-form" method="post" action="/Structure/units/@unit/move" hidden>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="targetParentId" value="root" data-structure-move-submit />
+</form>
+
+<script>
+    (function () {
+        var picker = document.querySelector("#structure-move .ds-unit-picker");
+        if (!picker) return;
+        var submitRoot = document.querySelector("[data-structure-move-submit]");
+        var submitButton = document.querySelector("#structure-move .btn-primary");
+        picker.addEventListener("change", function (e) {
+            var input = e.target.closest("input[data-structure-move-input]");
+            if (!input || input.disabled) return;
+            if (submitRoot) submitRoot.value = input.value;
+            if (submitButton) submitButton.disabled = false;
+        });
+    })();
+</script>

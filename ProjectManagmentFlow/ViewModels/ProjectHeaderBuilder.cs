@@ -31,8 +31,8 @@ public static class ProjectHeaderBuilder
             UnitHref = unitHref,
             UnitType = new UnitTypeBadgeViewModel
             {
-                Label = text[$"OrgLevel_{Math.Min((int)project.OrganizationDepth, 3)}"],
-                IsRoot = project.OrganizationDepth == 0
+                Label = text[$"OrgType_{project.OrganizationType}"].Value,
+                IsRoot = project.OrganizationDepth == 0 && project.OrganizationType == "organization"
             },
             Status = text[$"ProjectStatus_{project.Status}"],
             StatusClass = ProjectPresentation.StatusBadgeClass(project.Status),

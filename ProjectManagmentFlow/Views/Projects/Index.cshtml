@@ -3,11 +3,10 @@
     ViewData["Title"] = T["Nav_Projects"].Value;
     var activeHref = ViewData["ProjectsActiveHref"] as string ?? "/Projects";
     var archivedHref = ViewData["ProjectsArchivedHref"] as string ?? "/Projects?tab=archived";
-    var unitLevel = Model.HasUnit ? Math.Min((int)Model.Unit.Depth, 3) : 0;
     var unitBadge = new UnitTypeBadgeViewModel
     {
-        Label = T[$"OrgLevel_{unitLevel}"].Value,
-        IsRoot = Model.HasUnit && Model.Unit.Depth == 0
+        Label = T[$"OrgType_{Model.Unit.Type}"].Value,
+        IsRoot = Model.HasUnit && Model.Unit.Depth == 0 && Model.Unit.Type == "organization"
     };
 }
 
@@ -33,7 +32,7 @@
         <div class="ds-empty-state">
             <h2>@T["Projects_Empty"]</h2>
             <p>@T["Projects_EmptyHint"]</p>
-            <a class="btn btn-outline-secondary" href="/Organizations">@T["Projects_ChangeUnit"]</a>
+            <a class="btn btn-outline-secondary" href="/Structure">@T["Projects_ChangeUnit"]</a>
         </div>
     }
     else
@@ -43,7 +42,7 @@
                 <small>@T["Projects_UnitLabel"]</small>
                 <strong>@Model.Unit.Name</strong>
                 <partial name="_UnitTypeBadge" model="unitBadge" />
-                <a class="link-success fw-semibold text-decoration-none" href="/Organizations">
+                <a class="link-success fw-semibold text-decoration-none" href="/Structure">
                     @T["Projects_ChangeUnit"]
                 </a>
             </div>

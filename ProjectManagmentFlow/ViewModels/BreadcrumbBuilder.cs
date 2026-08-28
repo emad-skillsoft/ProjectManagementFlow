@@ -37,6 +37,29 @@ public static class BreadcrumbBuilder
     }
 
     /// <summary>
+    /// مسار وحدةٍ في الهيكل: سلسلة أجدادها مطويّةً، ثمّ هي نفسها.
+    /// يشترك مع مسار المشروع في قاعدة الطيّ — فلا تختلف الصفحتان.
+    /// </summary>
+    public static AppBreadcrumbViewModel ForUnit(
+        IStringLocalizer text,
+        IReadOnlyList<Organization> ancestors,
+        string unitName,
+        Func<Guid, string?> unitHref)
+    {
+        var items = Fold(ancestors
+            .Select(unit => new AppBreadcrumbItemViewModel
+            {
+                Label = unit.Name,
+                Url = unitHref(unit.Id)
+            })
+            .ToList());
+
+        items.Add(new AppBreadcrumbItemViewModel { Label = unitName, IsCurrent = true });
+
+        return new AppBreadcrumbViewModel { Label = text["Nav_Structure"], Items = items };
+    }
+
+    /// <summary>
     /// سلسلةٌ أطول من ثلاثٍ تُطوى إلى: الأولى · «…» · الأخيرة.
     /// المطويّات تبقى في العنوان والوصف المسموع كي لا يضيع السياق.
     /// </summary>

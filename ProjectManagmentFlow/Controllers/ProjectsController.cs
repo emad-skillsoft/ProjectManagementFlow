@@ -543,7 +543,7 @@ public class ProjectsController : Controller
             {
                 Id = unit.Id,
                 Name = unit.Name,
-                TypeLabel = _text[$"OrgLevel_{Math.Min((int)unit.Depth, 3)}"],
+                TypeLabel = _text[$"OrgType_{unit.Type}"],
                 Depth = unit.Depth,
                 IsRoot = unit.Depth == 0,
                 IsSelected = unit.Id == selectedUnit.Id,
@@ -856,7 +856,6 @@ public class ProjectsController : Controller
         var percent = card.TotalTasks == 0
             ? 0
             : (int)Math.Round(card.DoneTasks * 100d / card.TotalTasks);
-        var level = Math.Min((int)card.OrganizationDepth, 3);
         var today = DateOnly.FromDateTime(DisplayTime.RiyadhNow());
 
         return new ProjectCardViewModel
@@ -871,8 +870,8 @@ public class ProjectsController : Controller
             PriorityLabel = _text[$"ProjectPriority_{card.Priority}"],
             PriorityClass = $"ds-priority ds-priority--{card.Priority}",
             UnitName = card.OrganizationName ?? "—",
-            UnitTypeLabel = _text[$"OrgLevel_{level}"],
-            UnitIsRoot = card.OrganizationDepth == 0,
+            UnitTypeLabel = _text[$"OrgType_{card.OrganizationType}"],
+            UnitIsRoot = card.OrganizationDepth == 0 && card.OrganizationType == "organization",
             OwnerName = ownerName,
             OwnerInitial = NameInitials.Of(ownerName),
             DueLabel = card.DueDate is { } due

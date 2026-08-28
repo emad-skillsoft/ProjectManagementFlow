@@ -1,0 +1,102 @@
+@model ProjectManagmentFlow.ViewModels.StructureUnitPanelViewModel
+
+@*
+    عمودان لا أربعة: «العضو» يحمل هويّته كاملةً (الصورة · الاسم · البريد)،
+    و«الدور» يحمل الدور مرّةً واحدة — إمّا شارةً حين لا يُغيَّر، وإمّا مبدّلاً.
+    العمودان السابقان كانا يعرضان الدور مرّتين، ويُظهران المالكَ «عضواً»
+    لأنّ القائمة لا تحوي دوره.
+*@
+<div class="tab-pane fade show active" role="tabpanel">
+    <section class="ds-org-structure__section" aria-label="@T["Structure_MembersDirect"]">
+        <div class="d-flex align-items-baseline gap-2 mb-3">
+            <h2 class="ds-unit-header__title mb-0">@T["Structure_MembersDirect"]</h2>
+            <span class="text-body-secondary small">@Model.Members.Count</span>
+        </div>
+
+        @if (Model.Members.Count == 0)
+        {
+            <div class="ds-empty-state"><p class="mb-0">@T["OrgView_NoMembers"]</p></div>
+        }
+        else
+        {
+            <div class="ds-surface p-0 overflow-hidden">
+                <div class="ds-file-table__scroll">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">@T["OrgView_ColMember"]</th>
+                                <th scope="col">@T["OrgView_ColRole"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var member in Model.Members)
+                            {
+                                <tr>
+                                    <td><partial name="_StructureMemberIdentity" model="member" /></td>
+                                    <td>
+                                        @if (member.MayChangeRole)
+                                        {
+                                            <form method="post" data-structure-change-role
+                                                  action="/Structure/units/@Model.UnitId/members/@member.UserId/role">
+                                                @Html.AntiForgeryToken()
+                                                <label class="ds-visually-clipped" for="role-@member.UserId">
+                                                    @T["Structure_ChangeRole"]
+                                                </label>
+                                                <select class="ds-select ds-select--sm" id="role-@member.UserId"
+                                                        name="role" onchange="this.form.requestSubmit()">
+                                                    <option value="member" selected="@(member.Role == "member")">@T["OrgRole_member"]</option>
+                                                    <option value="admin" selected="@(member.Role == "admin")">@T["OrgRole_admin"]</option>
+                                                </select>
+                                                <noscript>
+                                                    <button class="btn btn-sm btn-outline-primary" type="submit">
+                                                        @T["Structure_ChangeRole"]
+                                                    </button>
+                                                </noscript>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge @(member.Role == "owner" ? "ds-badge-private" : "text-bg-light")">
+                                                @member.RoleLabel
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </section>
+
+    @if (Model.InheritedMembers.Count > 0)
+    {
+        @* الموروثون في بطاقةٍ مطويّة: سياقٌ يُطلب عند الحاجة لا صفٌّ يزاحم المباشرين. *@
+        <details class="ds-surface ds-org-structure__inherited mt-3">
+            <summary class="fw-semibold">
+                @T["Structure_MembersInherited", Model.InheritedMembers.Count]
+            </summary>
+            <p class="text-body-secondary small mt-2 mb-3">@T["Structure_InheritedHint"]</p>
+
+            <div class="d-grid gap-2">
+                @foreach (var member in Model.InheritedMembers)
+                {
+                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                        <partial name="_StructureMemberIdentity" model="member" />
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="badge text-bg-light">@member.RoleLabel</span>
+                            @if (member.InheritedFromName is { Length: > 0 })
+                            {
+                                <span class="ds-type-badge ds-type-badge--sub">
+                                    <span class="ds-type-badge__dot" aria-hidden="true"></span>
+                                    @T["Structure_MemberInheritedFrom", member.InheritedFromName]
+                                </span>
+                            }
+                        </span>
+                    </div>
+                }
+            </div>
+        </details>
+    }
+</div>

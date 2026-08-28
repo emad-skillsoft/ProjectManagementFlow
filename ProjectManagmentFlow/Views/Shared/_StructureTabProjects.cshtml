@@ -1,0 +1,49 @@
+@model ProjectManagmentFlow.ViewModels.StructureUnitPanelViewModel
+
+<div class="tab-pane fade show active" role="tabpanel">
+    <div class="ds-org-structure__section">
+        <div class="ds-scope-switch">
+            <span class="ds-scope-switch__hint">@T["Structure_ScopeHint"]</span>
+            <div class="ds-segmented" role="radiogroup" aria-label="@T["Structure_ScopeHint"]">
+                <input class="btn-check" id="scope-own" type="radio" name="scope" value="own"
+                       checked="@(Model.IncludeDescendants ? null : "")" />
+                <label class="ds-segmented-button" for="scope-own">@T["Structure_ScopeOwn"]</label>
+                <input class="btn-check" id="scope-subtree" type="radio" name="scope" value="subtree"
+                       checked="@(Model.IncludeDescendants ? "" : null)" />
+                <label class="ds-segmented-button" for="scope-subtree">@T["Structure_ScopeSubtree"]</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="ds-org-structure__section">
+        @if (Model.Projects.Count == 0)
+        {
+            <p class="text-muted py-4">@T["Structure_NoProjects"]</p>
+        }
+        else
+        {
+            <div class="ds-project-grid" data-structure-project-grid>
+                @foreach (var project in Model.Projects)
+                {
+                    <partial name="_ProjectCard" model="project" />
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    (function () {
+        // مبدّل النطاق: يبدّل الرابط فقط — بلا JS تبقى القائمة عاملة على «هذه الوحدة».
+        var scopeSwitch = document.querySelector(".ds-scope-switch [name='scope']");
+        if (!scopeSwitch) return;
+        var radios = document.querySelectorAll(".ds-scope-switch [name='scope']");
+        radios.forEach(function (radio) {
+            radio.addEventListener("change", function () {
+                var params = new URLSearchParams(window.location.search);
+                params.set("scope", radio.value);
+                window.location.replace(window.location.origin + window.location.pathname + "?" + params.toString());
+            });
+        });
+    })();
+</script>

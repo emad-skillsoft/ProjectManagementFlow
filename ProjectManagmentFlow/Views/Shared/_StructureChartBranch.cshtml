@@ -1,0 +1,35 @@
+@model ProjectManagmentFlow.ViewModels.StructureChartNodeViewModel
+
+<div class="ds-org-chart__branch" data-org-chart-branch data-node-id="@Model.UnitId" data-node-name="@Model.Name">
+    <div class="ds-org-chart__node-wrap">
+        <a class="ds-org-chart__node @(Model.IsCurrent ? "is-current" : null)"
+           data-org-chart-node href="@Model.Href"
+           aria-current="@(Model.IsCurrent ? "page" : null)">
+            <strong>@Model.Name</strong>
+            <span>
+                <partial name="_UnitTypeBadge" model="Model.Type" />
+                @if (Model.Code is { Length: > 0 })
+                {
+                    <bdi dir="ltr">@Model.Code</bdi>
+                }
+            </span>
+        </a>
+        @if (Model.HasChildren)
+        {
+            <button class="ds-org-chart__toggle" type="button" data-org-chart-toggle
+                    aria-label="@T["Structure_ChartToggle"]"
+                    aria-expanded="@(Model.IsExpanded ? "true" : "false")"
+                    aria-controls="structure-chart-children-@Model.UnitId">@(Model.IsExpanded ? "−" : "+")</button>
+        }
+    </div>
+    @if (Model.HasChildren && Model.Children.Count > 0)
+    {
+        <div class="ds-org-chart__children" id="structure-chart-children-@Model.UnitId" role="group"
+             data-org-chart-children hidden="@(Model.IsExpanded ? null : "")">
+            @foreach (var child in Model.Children)
+            {
+                <partial name="_StructureChartBranch" model="child" />
+            }
+        </div>
+    }
+</div>

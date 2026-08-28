@@ -101,7 +101,11 @@ public class LayoutBuilder
             }
         };
 
-        Add(items, PermissionNames.OrganizationsView, "Nav_Organizations", "/Organizations", path);
+        // «الهيكل»: شجرة المنظّمة — يظهر لمن يديرها فقط، وإخفاؤه عن غيره.
+        if (managesOrg)
+        {
+            Add(items, PermissionNames.OrganizationsView, "Nav_Structure", "/Structure", path);
+        }
         // «المنظّمة» مساحة إدارةٍ لا صفحة اطّلاع: تظهر لمن يملك فيها قراراً.
         if (managesOrg)
         {

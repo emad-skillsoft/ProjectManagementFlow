@@ -1,0 +1,16 @@
+@model ProjectManagmentFlow.ViewModels.StructureViewSwitchViewModel
+
+<div class="ds-org-view-switch">
+    <strong>@Model.Label</strong>
+    <div class="ds-segmented" role="group" aria-label="@Model.Label">
+        @foreach (var option in Model.Options)
+        {
+            <button class="ds-segmented-button @(option.IsSelected ? "is-active" : null)" type="button"
+                    data-structure-view="@option.Value" aria-pressed="@(option.IsSelected ? "true" : "false")"
+                    data-structure-view-target="@(option.Value == "chart" ? "structure-chart" : "structure-list")">
+                @option.Label
+            </button>
+        }
+    </div>
+    <span class="ds-org-view-switch__meta">@Model.Meta</span>
+</div>

@@ -2,13 +2,15 @@
 @using ProjectManagmentFlow.Localization
 @{
     var task = Model.Task;
-    // المهمّة الشخصية لا مشروع في مسارها؛ الدرج نفسه يخدم الحالتين.
+    // مهمّةٌ شخصية بلا مشروعٍ في مسارها؛ الدرج نفسه يخدم الحالتين.
     var basePath = task.ProjectId is { } projectId
         ? $"/projects/{projectId}/tasks/{task.Id}"
         : $"/Tasks/{task.Id}";
     var canMove = Model.Permissions.ManagesBoard || task.AssigneeId == Model.Permissions.ActorId;
     var done = task.Subtasks.Count(subtask => subtask.Status == TaskState.Done);
     var percent = task.Subtasks.Count == 0 ? 0 : done * 100 / task.Subtasks.Count;
+    // صيغة التاريخ الكاملة خارج الحرف المُقتبس — Razor v4 لا يسمح بعلامتي اقتباسٍ بداخلٍ آخر.
+    var roundTripFormat = "O";
 }
 
 <header class="ds-task-drawer__top">
@@ -244,7 +246,7 @@
                     </span>
                     <div class="ds-timeline-body">
                         <p class="ds-timeline-title">@T[$"Activity_{entry.Action}", actor, T["Activity_Entity_Task"], ActivityPayload.Value(T, ActivityEntities.Task, entry.Payload)]</p>
-                        <time class="ds-timeline-time" datetime="@entry.CreatedAt.ToString("O")">@entry.CreatedAt.Relative(T)</time>
+                        <time class="ds-timeline-time" datetime="@entry.CreatedAt.ToString(roundTripFormat)">@entry.CreatedAt.Relative(T)</time>
                     </div>
                 </li>
             }

@@ -1,0 +1,65 @@
+@model ProjectManagmentFlow.ViewModels.StructureTreePanelViewModel
+
+@*
+    الشجرة مسطّحةٌ بترتيبٍ سابق كما يعرّفها الثيم: ds-unit-tree__item صفٌّ مرنٌ
+    واحد يحمل الزرّ والسطر جنباً إلى جنب، والتداخل يُعبَّر عنه بـ--ds-unit-depth.
+    تداخل العناصر في الـDOM يجعل قائمة الأبناء شقيقةً مرنةً لسطر الأب فتُرصف بجانبه.
+*@
+<div class="ds-unit-tree" aria-label="@Model.Label">
+    <div class="ds-unit-tree__header">
+        <div>
+            <strong>@Model.Label</strong>
+            <small>@Model.UnitCountLabel</small>
+            <div class="ds-unit-tree__toolbar">
+                <button type="button" data-structure-action="expand-all">@Model.ExpandAllLabel</button>
+                <button type="button" data-structure-action="collapse-all">@Model.CollapseAllLabel</button>
+            </div>
+        </div>
+        <label class="visually-hidden" for="structure-tree-search">@Model.SearchLabel</label>
+        <input class="form-control form-control-sm" id="structure-tree-search" type="search"
+               value="@Model.Search" data-structure-search placeholder="@Model.SearchLabel" />
+    </div>
+
+    <div class="ds-unit-tree__body" role="tree" aria-label="@Model.Label" data-structure-tree>
+        @foreach (var node in Model.Root?.Flatten() ?? [])
+        {
+            <div class="ds-unit-tree__item" role="treeitem"
+                 aria-level="@(node.Depth + 1)"
+                 aria-expanded="@(node.HasChildren ? (node.IsExpanded ? "true" : "false") : null)"
+                 style="--ds-unit-depth:@node.Depth"
+                 data-structure-node
+                 data-node-id="@node.UnitId"
+                 data-node-parent="@node.ParentId"
+                 data-node-name="@node.Name">
+                @if (node.HasChildren)
+                {
+                    <button class="ds-unit-tree__toggle" type="button"
+                            data-structure-toggle="@node.UnitId"
+                            aria-label="@Model.ToggleLabel">@(node.IsExpanded ? "−" : "+")</button>
+                }
+                else
+                {
+                    <span class="ds-unit-tree__toggle" aria-hidden="true"></span>
+                }
+
+                <a class="ds-unit-tree__row @(node.IsCurrent ? "is-current" : null)"
+                   aria-current="@(node.IsCurrent ? "page" : null)" href="@node.Href">
+                    <span>@node.Name</span>
+                    <partial name="_UnitTypeBadge" model="node.Type" />
+                    @if (node.Code is { Length: > 0 })
+                    {
+                        <bdi dir="ltr">@node.Code</bdi>
+                    }
+                    @* رقمٌ عارٍ لا يقول شيئاً؛ والصفر ضجيجٌ في كلّ صفّ. *@
+                    @if (node.DirectProjects > 0)
+                    {
+                        <small title="@T["Structure_DirectProjects", node.DirectProjects]">
+                            <span class="ds-visually-clipped">@T["Structure_DirectProjects", node.DirectProjects]</span>
+                            <span aria-hidden="true">@node.DirectProjects</span>
+                        </small>
+                    }
+                </a>
+            </div>
+        }
+    </div>
+</div>

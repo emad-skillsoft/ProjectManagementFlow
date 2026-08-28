@@ -1,0 +1,15 @@
+@model ProjectManagmentFlow.ViewModels.StructureChartToolbarViewModel
+
+<header class="ds-org-chart__toolbar">
+    <label class="visually-hidden" for="structure-chart-search">@Model.SearchLabel</label>
+    <input class="form-control form-control-sm" id="structure-chart-search" type="search"
+           placeholder="@Model.SearchLabel" data-org-chart-search />
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-org-chart-action="expand-all">@Model.ExpandAllLabel</button>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-org-chart-action="collapse-all">@Model.CollapseAllLabel</button>
+    <span class="ds-org-chart__zoom">
+        <button type="button" data-org-chart-action="zoom-out" aria-label="@Model.ZoomOutLabel">−</button>
+        <output data-org-chart-zoom-output aria-live="polite">@Model.ZoomPercent%</output>
+        <button type="button" data-org-chart-action="zoom-in" aria-label="@Model.ZoomInLabel">+</button>
+        <button class="btn btn-sm btn-outline-primary" type="button" data-org-chart-action="fit">@Model.FitLabel</button>
+    </span>
+</header>

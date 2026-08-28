@@ -1,0 +1,69 @@
+@model ProjectManagmentFlow.ViewModels.StructureViewModel
+@{
+    ViewData["Title"] = T["Nav_Structure"].Value;
+    var pageIsChart = Model.IsChartView;
+}
+
+@* الشجرة الجانبيّة تبقى في الوضعين: هي مِلاحة الصفحة، والمخطّط عرضٌ للمحتوى.
+   is-chart-view في الثيم يخفيها، فلا يُطبَّق. *@
+<div class="ds-org-structure ds-org-structure--drawer" data-structure>
+    <div class="ds-org-treebar">
+        <button class="btn btn-outline-primary" type="button" data-structure-tree-open
+                aria-controls="structure-tree-drawer">
+            <span aria-hidden="true">☰</span>@T["Structure_TreeLabel"]
+        </button>
+        <span class="ds-org-treebar__unit" data-structure-current-name>@Model.Panel.Name</span>
+    </div>
+    <button class="ds-org-structure__scrim" type="button" data-structure-tree-close
+            aria-label="@T["Common_Close"]" tabindex="-1"></button>
+    <aside class="ds-org-structure__tree" id="structure-tree-drawer" aria-label="@T["Structure_TreeLabel"]"
+           data-structure-tree-panel>
+        <button class="ds-org-treebar__close" type="button" data-structure-tree-close
+                aria-label="@T["Common_Close"]">×</button>
+        <partial name="_StructureTree" model="Model.Tree" />
+    </aside>
+
+    <section class="ds-org-structure__content" aria-label="@Model.Panel.Name">
+        @if (Model.Status is { Length: > 0 })
+        {
+            <div class="alert alert-success" role="status">@Model.Status</div>
+        }
+        @if (Model.Error is { Length: > 0 })
+        {
+            <div class="alert alert-danger" role="alert">@Model.Error</div>
+        }
+
+        <partial name="_StructureViewSwitch" model="Model.View" />
+
+        <section class="ds-org-chart" id="structure-chart" aria-label="@T["Structure_ChartLabel"]"
+                 hidden="@(pageIsChart ? null : "")" data-org-chart>
+            <partial name="_StructureChartToolbar" model="Model.Chart.Toolbar" />
+            <div class="ds-org-chart__viewport" data-org-chart-viewport>
+                <div class="ds-org-chart__canvas" data-org-chart-canvas>
+                    <partial name="_StructureChartBranch" model="Model.Chart.Root" />
+                </div>
+            </div>
+            <p class="ds-org-chart__hint">@Model.Chart.Hint</p>
+        </section>
+
+        @* لوحة الوحدة تبقى في الوضعين: المخطّط يحلّ محلّ شجرة الجانب لا محلّ التفاصيل.
+           وهو ما يقوله الثيم نفسه — is-chart-view يخفي الشجرة والشريط فقط. *@
+        <div class="ds-org-list-view" id="structure-list" data-structure-list>
+            <partial name="_StructureUnitHeader" model="Model.Panel" />
+            <partial name="_StructureUnitTabs" model="Model.Panel" />
+        </div>
+    </section>
+</div>
+
+@* نوافذ الأعمدة الثلاثة — تُعرض لمن يدير الوحدة فقط، وتعمل بلا JS لأنّها نماذج عاديّة. *@
+@if (Model.Panel.MayManage)
+{
+    <partial name="_StructureCreate" model="Model.Panel.Create" />
+    <partial name="_StructureMove" model="Model.Panel.Move" />
+    <partial name="_StructureDelete" model="Model.Panel.DeleteDialog" />
+}
+
+@section Scripts
+{
+    <script src="~/js/structure.js" asp-append-version="true"></script>
+}

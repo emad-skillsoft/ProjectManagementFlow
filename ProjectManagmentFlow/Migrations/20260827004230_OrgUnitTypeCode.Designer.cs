@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectManagmentFlow.Data;
 
@@ -11,9 +12,11 @@ using ProjectManagmentFlow.Data;
 namespace ProjectManagmentFlow.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827004230_OrgUnitTypeCode")]
+    partial class OrgUnitTypeCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,11 +172,6 @@ namespace ProjectManagmentFlow.Migrations
                     b.HasIndex("ParentId");
 
                     b.HasIndex("Path");
-
-                    b.HasIndex("RootId", "Code")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Organization_Code")
-                        .HasFilter("[Code] IS NOT NULL");
 
                     b.HasIndex("RootId", "Depth");
 

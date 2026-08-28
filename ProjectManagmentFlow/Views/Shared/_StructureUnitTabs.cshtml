@@ -1,0 +1,29 @@
+@model ProjectManagmentFlow.ViewModels.StructureUnitPanelViewModel
+@{
+    var currentTab = Model.Tabs.FirstOrDefault(t => t.IsCurrent)?.Key ?? "overview";
+}
+
+<ul class="nav nav-tabs" role="tablist">
+    @foreach (var tab in Model.Tabs)
+    {
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(tab.IsCurrent ? "active" : null)" role="tab" href="@tab.Href"
+               aria-current="@(tab.IsCurrent ? "page" : null)">@tab.Label</a>
+        </li>
+    }
+</ul>
+
+<div class="tab-content">
+    @switch (currentTab)
+    {
+        case "members":
+            <partial name="_StructureTabMembers" model="Model" />
+            break;
+        case "projects":
+            <partial name="_StructureTabProjects" model="Model" />
+            break;
+        default:
+            <partial name="_StructureTabOverview" model="Model" />
+            break;
+    }
+</div>

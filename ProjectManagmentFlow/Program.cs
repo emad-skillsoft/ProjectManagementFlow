@@ -158,6 +158,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Assets  تستثنيها من FallbackPolicy
+// ⚠ MapStaticAssets يقدّم النسخ المضغوطة المولَّدة عند النشر وحده. تشغيل التطبيق
+// من bin في بيئةٍ غير Development يردّ ٢٠٠ بجسمٍ فارغ لكلّ متصفّحٍ يطلب br/gzip —
+// أي صفحةٌ بلا CSS ولا JS. النشر بـdotnet publish يولّدها فيزول العطل؛ فلا تُشغَّل
+// بيئة الإنتاج من bin مباشرةً.
 app.MapStaticAssets().AllowAnonymous();
 
 app.MapControllerRoute(
